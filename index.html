@@ -127,6 +127,75 @@
         .touch-feedback:active {
             background-color: rgba(0, 0, 0, 0.05);
         }
+        
+        /* 삭제 확인 모달 */
+        .delete-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .delete-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .delete-content {
+            width: 90%;
+            max-width: 400px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .delete-modal.active .delete-content {
+            transform: scale(1);
+        }
+        
+        /* 삭제 버튼 스타일 */
+        .delete-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s, background-color 0.2s;
+        }
+        
+        .post-card:hover .delete-button {
+            opacity: 1;
+        }
+        
+        .delete-button:hover {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        /* 모바일에서는 항상 삭제 버튼 표시 */
+        @media (max-width: 640px) {
+            .delete-button {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50">
@@ -337,6 +406,34 @@
 
     <!-- 모바일 오버레이 -->
     <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden" onclick="hideFloatingMenu()"></div>
+    
+    <!-- 삭제 확인 모달 -->
+    <div id="deleteModal" class="delete-modal">
+        <div class="delete-content">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">작품 삭제</h3>
+                        <p class="text-sm text-gray-500">이 작업은 되돌릴 수 없습니다.</p>
+                    </div>
+                </div>
+                <p class="text-gray-700 mb-6">
+                    "<span id="deleteTitle" class="font-medium"></span>" 작품을 정말 삭제하시겠습니까?
+                </p>
+                <div class="flex gap-3">
+                    <button onclick="closeDeleteModal()" class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        취소
+                    </button>
+                    <button onclick="confirmDelete()" class="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        삭제
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // 전역 변수들
@@ -372,6 +469,7 @@
 
         let currentEditingPiece = null;
         let currentFilter = "전체";
+        let pieceToDelete = null; // 삭제할 작품 ID 저장
 
         const categoryConfig = {
             "소설": {
@@ -450,6 +548,35 @@
             localStorage.setItem('writingPieces', JSON.stringify(pieces));
         }
 
+        // 삭제 모달 열기
+        function openDeleteModal(pieceId, event) {
+            event.stopPropagation(); // 카드 클릭 이벤트 방지
+            
+            const piece = pieces.find(p => p.id === pieceId);
+            if (piece) {
+                pieceToDelete = pieceId;
+                document.getElementById('deleteTitle').textContent = piece.title;
+                document.getElementById('deleteModal').classList.add('active');
+            }
+        }
+
+        // 삭제 모달 닫기
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            pieceToDelete = null;
+        }
+
+        // 삭제 확인
+        function confirmDelete() {
+            if (pieceToDelete) {
+                pieces = pieces.filter(piece => piece.id !== pieceToDelete);
+                saveToLocalStorage();
+                renderCategoryStats();
+                renderPostsList();
+                closeDeleteModal();
+            }
+        }
+
         // 카테고리 통계 렌더링
         function renderCategoryStats() {
             const stats = {};
@@ -504,10 +631,15 @@
             listContainer.innerHTML = filteredPieces.map(piece => {
                 const config = categoryConfig[piece.category];
                 return `
-                    <div class="bg-white border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow duration-200 hover:border-gray-300 touch-feedback" onclick="editPiece('${piece.id}')">
+                    <div class="post-card bg-white border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow duration-200 hover:border-gray-300 touch-feedback relative" onclick="editPiece('${piece.id}')">
+                        <!-- 삭제 버튼 -->
+                        <button class="delete-button" onclick="openDeleteModal('${piece.id}', event)" aria-label="작품 삭제">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                        
                         <div class="p-4 pb-3">
                             <div class="flex justify-between items-start">
-                                <div class="flex items-center gap-2 flex-1">
+                                <div class="flex items-center gap-2 flex-1 pr-10">
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${config.lightColor}">
                                         <i class="${config.icon} mr-1"></i>
                                         ${piece.category}
