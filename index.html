@@ -698,6 +698,56 @@
 
                 .genre-desc {
                     font-size: 0.8rem;
+                /* 모바일 가로모드 사이드바 토글 기능 */
+                 @media (orientation: landscape) and (max-height: 500px) {
+                    /* 사이드바를 기본적으로 숨김 */
+                    .sidebar {
+                        transform: translateX(-100%);
+                        transition: transform 0.3s ease;
+                    }
+                    
+                    /* 사이드바가 열려있을 때 */
+                    .sidebar.open {
+                        transform: translateX(0);
+                    }
+                    
+                    /* 메인 콘텐츠 영역을 전체 너비로 확장 */
+                    .main-content {
+                        width: 100%;
+                        margin-left: 0;
+                    }
+                    
+                    /* 모바일 메뉴 버튼을 항상 표시 */
+                    .mobile-menu-btn {
+                        display: block !important;
+                    }
+                    
+                    /* 사이드바가 열려있을 때 배경 오버레이 추가 */
+                    .sidebar-overlay {
+                        display: none;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.5);
+                        z-index: 150;
+                        backdrop-filter: blur(2px);
+                    }
+                    
+                    .sidebar-overlay.show {
+                        display: block;
+                    }
+                    
+                    /* 사이드바 z-index 조정 */
+                    .sidebar {
+                        z-index: 200;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 280px; /* 가로모드에서는 고정 너비 사용 */
+                    }
+                }
                 }
             }
         }
@@ -1342,6 +1392,67 @@
                 sidebar.classList.remove('open');
             }
         });
+        // 모바일 가로모드 사이드바 토글 JavaScript 코드
+    
+    // 사이드바 오버레이 요소 생성 및 추가 (HTML body 태그 직전에 추가)
+    const sidebarOverlay = document.createElement('div');
+    sidebarOverlay.className = 'sidebar-overlay';
+    sidebarOverlay.id = 'sidebarOverlay';
+    document.body.appendChild(sidebarOverlay);
+    
+    // 기존 toggleSidebar 함수를 수정
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+        
+        if (sidebar.classList.contains('open')) {
+            // 사이드바 닫기
+            sidebar.classList.remove('open');
+            if (isLandscape) {
+                overlay.classList.remove('show');
+            }
+        } else {
+            // 사이드바 열기
+            sidebar.classList.add('open');
+            if (isLandscape) {
+                overlay.classList.add('show');
+            }
+        }
+    }
+    
+    // 오버레이 클릭 시 사이드바 닫기
+    document.addEventListener('click', function(e) {
+        const overlay = document.getElementById('sidebarOverlay');
+        if (e.target === overlay) {
+            toggleSidebar();
+        }
+    });
+    
+    // 화면 회전 감지 및 처리
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+            
+            if (!isLandscape) {
+                // 세로모드로 변경시 오버레이 숨김
+                overlay.classList.remove('show');
+            }
+        }, 100);
+    });
+    
+    // 윈도우 리사이즈 감지
+    window.addEventListener('resize', function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+        
+        if (!isLandscape) {
+            overlay.classList.remove('show');
+        }
+    });
     </script>
 </body>
 </html>
