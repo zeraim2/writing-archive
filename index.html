@@ -2,1501 +2,824 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>작가의 서재</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Gothic:wght@400;700&family=Gowun+Dodum&family=Gowun+Batang:wght@400;700&family=Hahmlet:wght@300;400;500;700&family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=Pretendard:wght@300;400;500;700&family=Spoqa+Han+Sans+Neo:wght@300;400;700&family=Noto+Serif+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>창작 공간</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-beige: #f5f1eb;
-            --secondary-beige: #e8dcc6;
-            --dark-beige: #d4c4a8;
-            --accent-brown: #8b6f47;
-            --text-dark: #4a4137;
-            --text-light: #6b5d52;
-            --white-soft: #faf8f5;
-            --shadow: rgba(139, 111, 71, 0.15);
-            --sidebar-width: 280px;
-            --header-height: 60px;
-        }
-
+        /* 카테고리 색상 */
+        .category-novel { background-color: #3b82f6; }
+        .category-poem { background-color: #ec4899; }
+        .category-diary { background-color: #10b981; }
+        .category-essay { background-color: #8b5cf6; }
+        .category-idea { background-color: #f59e0b; }
+        .category-script { background-color: #ef4444; }
+        
+        .category-novel-light { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .category-poem-light { background-color: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+        .category-diary-light { background-color: #ecfdf5; color: #047857; border-color: #bbf7d0; }
+        .category-essay-light { background-color: #f3e8ff; color: #6d28d9; border-color: #ddd6fe; }
+        .category-idea-light { background-color: #fffbeb; color: #92400e; border-color: #fed7aa; }
+        .category-script-light { background-color: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+        
+        /* 모바일 최적화 스타일 */
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: var(--primary-beige);
-            color: var(--text-dark);
-            line-height: 1.6;
-            min-height: 100vh;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            transition: all 0.3s ease;
+            overscroll-behavior-y: contain; /* 모바일에서 당겨서 새로고침 방지 */
+            -webkit-tap-highlight-color: transparent; /* 탭 하이라이트 제거 */
+            touch-action: manipulation; /* 더블탭 줌 방지 */
         }
-
-        .overlay {
-            background: rgba(245, 241, 235, 0.85);
-            min-height: 100vh;
-            backdrop-filter: blur(10px);
+        
+        /* 모바일에서 터치 영역 확대 */
+        button, select, input[type="text"], textarea {
+            min-height: 44px; /* 애플 권장 최소 터치 영역 */
         }
-
-        /* 홈 화면 */
-        .home-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            text-align: center;
+        
+        /* 플로팅 메뉴 모바일 최적화 */
+        .floating-menu {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            transform: translateY(10px);
         }
-
-        .home-title {
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            font-weight: 300;
-            color: var(--accent-brown);
-            margin-bottom: 1rem;
-            font-family: 'Gowun Batang', serif;
+        
+        .floating-button.active .floating-menu {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
         }
-
-        .home-subtitle {
-            font-size: clamp(1rem, 3vw, 1.2rem);
-            color: var(--text-light);
-            margin-bottom: 3rem;
-            font-weight: 300;
+        
+        /* 모바일에서 스크롤 최적화 */
+        .mobile-scroll {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
         }
-
-        .genre-selection {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            max-width: 800px;
-            width: 100%;
-            margin-bottom: 2rem;
-        }
-
-        .genre-card {
-            background: var(--white-soft);
-            border: 2px solid var(--secondary-beige);
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px var(--shadow);
-            position: relative;
+        
+        /* 텍스트 줄임 */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
-
-        .genre-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px var(--shadow);
-            border-color: var(--accent-brown);
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-
-        .genre-card::before {
+        
+        /* 탭 스타일 */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-button {
+            position: relative;
+            padding: 0.75rem 0;
+            width: 33.333%;
+            text-align: center;
+        }
+        
+        .tab-button.active {
+            color: #3b82f6;
+            font-weight: 500;
+        }
+        
+        .tab-button.active::after {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(139, 111, 71, 0.05), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s ease;
-            opacity: 0;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background-color: #3b82f6;
         }
-
-        .genre-card:hover::before {
-            opacity: 1;
-            animation: shimmer 1.5s ease-in-out;
+        
+        /* 모바일 키보드 대응 */
+        @media (max-width: 640px) {
+            .keyboard-adjust {
+                padding-bottom: 40vh; /* 키보드 높이 대응 */
+            }
         }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-
-        .genre-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .genre-title {
-            font-size: 1.5rem;
-            font-weight: 500;
-            color: var(--accent-brown);
-            margin-bottom: 0.5rem;
-        }
-
-        .genre-desc {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            line-height: 1.4;
-        }
-
-        /* 작성 화면 레이아웃 */
-        .writing-screen {
-            display: none;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .app-layout {
-            display: flex;
-            height: 100vh;
-        }
-
-        /* 사이드바 */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--white-soft);
-            border-right: 1px solid var(--secondary-beige);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 15px var(--shadow);
-            z-index: 100;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-header {
-            padding: 1rem;
-            border-bottom: 1px solid var(--secondary-beige);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--accent-brown);
-            font-family: 'Gowun Batang', serif;
-        }
-
-        .new-file-btn {
-            background: var(--accent-brown);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .new-file-btn:hover {
-            background: #6b4d32;
-            transform: scale(1.05);
-        }
-
-        .file-list {
-            flex: 1;
+        
+        /* 모바일 스크롤 영역 */
+        .posts-container {
+            height: calc(100vh - 220px);
             overflow-y: auto;
-            padding: 1rem;
         }
-
-        .file-item {
-            padding: 0.8rem;
-            margin-bottom: 0.5rem;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .file-item:hover {
-            background: var(--secondary-beige);
-        }
-
-        .file-item.active {
-            background: var(--accent-brown);
-            color: white;
-        }
-
-        .file-icon {
-            font-size: 1.2rem;
-        }
-
-        .file-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-name {
-            font-weight: 500;
-            margin-bottom: 0.2rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .file-date {
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 0.3rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .file-item:hover .file-actions {
-            opacity: 1;
-        }
-
-        .file-action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.2rem;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .file-action-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        /* 메인 에디터 영역 */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .editor-header {
-            height: var(--header-height);
-            background: var(--white-soft);
-            border-bottom: 1px solid var(--secondary-beige);
-            display: flex;
-            align-items: center;
-            justify-content: between;
-            padding: 0 1.5rem;
-            gap: 1rem;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--accent-brown);
-        }
-
-        .editor-title {
-            flex: 1;
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: var(--accent-brown);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .editor-controls {
-            display: flex;
-            gap: 0.8rem;
-            align-items: center;
-        }
-
-        .control-btn {
-            background: var(--secondary-beige);
-            border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        .control-btn:hover {
-            background: var(--dark-beige);
-            transform: translateY(-2px);
-        }
-
-        .editor-area {
-            flex: 1;
-            background: var(--white-soft);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .editor {
-            flex: 1;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: var(--text-dark);
-            resize: none;
-            font-family: 'Noto Sans KR', sans-serif;
-            padding: 2rem;
-        }
-
-        .editor::placeholder {
-            color: var(--text-light);
-            opacity: 0.7;
-        }
-
-        .editor-footer {
-            padding: 1rem 2rem;
-            border-top: 1px solid var(--secondary-beige);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--white-soft);
-        }
-
-        .word-count {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .status-indicators {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .auto-save-indicator {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        /* 설정 패널 */
-        .settings-panel {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 400px;
-            height: 100vh;
-            background: var(--white-soft);
-            box-shadow: -5px 0 20px var(--shadow);
-            transition: right 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-
-        .settings-panel.open {
-            right: 0;
-        }
-
-        .settings-title {
-            font-size: 1.3rem;
-            color: var(--accent-brown);
-            margin-bottom: 2rem;
-            font-weight: 500;
-        }
-
-        .setting-group {
-            margin-bottom: 2rem;
-        }
-
-        .setting-label {
-            display: block;
-            font-weight: 500;
-            color: var(--text-dark);
-            margin-bottom: 0.8rem;
-        }
-
-        .font-selector, .background-selector, .font-size-slider {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid var(--secondary-beige);
-            border-radius: 10px;
-            background: white;
-            font-size: 1rem;
-            color: var(--text-dark);
-        }
-
-        .font-selector:focus, .background-selector:focus {
-            outline: none;
-            border-color: var(--accent-brown);
-        }
-
-        .font-size-control {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        .font-size-display {
-            min-width: 3rem;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .background-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 1rem;
-        }
-
-        .bg-option {
-            aspect-ratio: 1;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 3px solid transparent;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .bg-option:hover {
-            transform: scale(1.05);
-        }
-
-        .bg-option.active {
-            border-color: var(--accent-brown);
-            box-shadow: 0 0 15px var(--shadow);
-        }
-
-        .upload-area {
-            border: 2px dashed var(--secondary-beige);
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .upload-area:hover {
-            border-color: var(--accent-brown);
-            background: rgba(139, 111, 71, 0.05);
-        }
-
-        /* 모달 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal.open {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: var(--white-soft);
-            border-radius: 20px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 10px 30px var(--shadow);
-        }
-
-        .modal-title {
-            font-size: 1.3rem;
-            font-weight: 500;
-            color: var(--accent-brown);
-            margin-bottom: 1rem;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid var(--secondary-beige);
-            border-radius: 10px;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .modal-input:focus {
-            outline: none;
-            border-color: var(--accent-brown);
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-
-        .modal-btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .modal-btn.primary {
-            background: var(--accent-brown);
-            color: white;
-        }
-
-        .modal-btn.secondary {
-            background: var(--secondary-beige);
-            color: var(--text-dark);
-        }
-
-        .modal-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        /* 배경 이미지들 */
-        .bg-1 { background: linear-gradient(135deg, #f5f1eb 0%, #e8dcc6 100%); }
-        .bg-2 { background: linear-gradient(135deg, #fdf8f0 0%, #f0e6d2 100%); }
-        .bg-3 { background: linear-gradient(135deg, #f9f5f0 0%, #f0e68c 100%); }
-        .bg-4 { background: linear-gradient(135deg, #fff8dc 0%, #f5deb3 100%); }
-        .bg-5 { background: linear-gradient(135deg, #faf0e6 0%, #deb887 100%); }
-        .bg-6 { background: linear-gradient(135deg, #f5f5dc 0%, #d2b48c 100%); }
-        .bg-7 { background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); }
-        .bg-8 { background: linear-gradient(135deg, #f5fffa 0%, #f0fff0 100%); }
-        .bg-9 { background: linear-gradient(135deg, #fff5ee 0%, #ffd4c4 100%); }
-        .bg-10 { background: linear-gradient(135deg, #f8f8ff 0%, #e6e6fa 100%); }
-        .bg-11 { background: linear-gradient(135deg, #fffacd 0%, #ffefd5 100%); }
-        .bg-12 { background: linear-gradient(135deg, #fdf5e6 0%, #f4a460 100%); }
-
-        /* 모바일 최적화 */
-        @media (max-width: 768px) {
-            :root {
-                --sidebar-width: 100vw;
-                --header-height: 50px;
-            }
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                z-index: 200;
-                transform: translateX(-100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .main-content {
-                width: 100%;
-            }
-
-            .editor-header {
-                padding: 0 1rem;
-                height: var(--header-height);
-            }
-
-            .editor-title {
-                font-size: 1rem;
-            }
-
-            .editor-controls {
-                gap: 0.5rem;
-            }
-
-            .control-btn {
-                padding: 0.5rem 0.8rem;
-                font-size: 0.8rem;
-            }
-
-            .editor {
-                padding: 1rem;
-                font-size: 1rem;
-            }
-
-            .editor-footer {
-                padding: 0.8rem 1rem;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .settings-panel {
-                width: 100vw;
-                right: -100vw;
-                padding: 1rem;
-            }
-
-            .modal-content {
-                padding: 1.5rem;
-            }
-
-            .background-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .genre-selection {
-                grid-template-columns: 1fr;
-                max-width: 400px;
-            }
-
-            /* 모바일 가로모드 최적화 */
-            @media (orientation: landscape) and (max-height: 500px) {
-                .editor-header {
-                    height: 40px;
-                }
-
-                .editor {
-                    padding: 0.8rem;
-                }
-
-                .editor-footer {
-                    padding: 0.5rem;
-                }
-
-                .home-title {
-                    font-size: 2rem;
-                }
-
-                .home-subtitle {
-                    font-size: 1rem;
-                    margin-bottom: 1.5rem;
-                }
-
-                .genre-selection {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 15px;
-                }
-
-                .genre-card {
-                    padding: 1rem;
-                }
-
-                .genre-icon {
-                    font-size: 2rem;
-                    margin-bottom: 0.5rem;
-                }
-
-                .genre-title {
-                    font-size: 1.2rem;
-                }
-
-                .genre-desc {
-                    font-size: 0.8rem;
-                
-                }
-            }
-            
-            @media (orientation: landscape) and (max-height: 500px) {
-                .editor-header {
-                    height: 40px;
-                }
-            
-                .editor {
-                    padding: 0.8rem;
-                }
-            
-                .editor-footer {
-                    padding: 0.5rem;
-                }
-            
-                .home-title {
-                    font-size: 2rem;
-                }
-            
-                .home-subtitle {
-                    font-size: 1rem;
-                    margin-bottom: 1.5rem;
-                }
-            
-                .genre-selection {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 15px;
-                }
-            
-                .genre-card {
-                    padding: 1rem;
-                }
-            
-                .genre-icon {
-                    font-size: 2rem;
-                    margin-bottom: 0.5rem;
-                }
-            
-                .genre-title {
-                    font-size: 1.2rem;
-                }
-            
-                .genre-desc {
-                    font-size: 0.8rem;
-                }
-            
-                /* 사이드바를 기본적으로 숨김 */
-                .sidebar {
-                    transform: translateX(-100%);
-                    transition: transform 0.3s ease;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 280px;
-                    z-index: 200;
-                }
-                
-                /* 사이드바가 열려있을 때 */
-                .sidebar.open {
-                    transform: translateX(0);
-                }
-                
-                /* 메인 콘텐츠 영역을 전체 너비로 확장 */
-                .main-content {
-                    width: 100%;
-                    margin-left: 0;
-                }
-                
-                /* 모바일 메뉴 버튼을 항상 표시 */
-                .mobile-menu-btn {
-                    display: block !important;
-                }
+        
+        /* 모바일 입력 필드 포커스 시 확대 방지 */
+        @media (max-width: 640px) {
+            input, textarea, select {
+                font-size: 16px; /* iOS에서 자동 확대 방지 */
             }
         }
-
-        /* 터치 디바이스 최적화 */
-        @media (hover: none) and (pointer: coarse) {
-            .control-btn, .new-file-btn, .file-item {
-                min-height: 44px;
-            }
-
-            .file-actions {
-                opacity: 1;
-            }
-        }
-
-        /* 애니메이션 */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .slide-up {
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* 사이드바 오버레이 */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 150;
-            backdrop-filter: blur(2px);
-        }
-
-        .sidebar-overlay.show {
-            display: block;
-        }
-
-        /* 스크롤바 스타일링 */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }        
-        /* 스크롤바 스타일링 */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--secondary-beige);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent-brown);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b4d32;
+        
+        /* 모바일 터치 피드백 */
+        .touch-feedback:active {
+            background-color: rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
-<body>
-    <div class="overlay">
-        <!-- 홈 화면 -->
-        <div class="home-screen" id="homeScreen">
-            <h1 class="home-title fade-in">작가의 서재</h1>
-            <p class="home-subtitle fade-in">오늘은 어떤 이야기를 써볼까요?</p>
-            
-            <div class="genre-selection">
-                <div class="genre-card slide-up" onclick="startWriting('novel')" style="animation-delay: 0.1s">
-                    <span class="genre-icon">📚</span>
-                    <h3 class="genre-title">소설</h3>
-                    <p class="genre-desc">긴 이야기와 인물들의<br>세계를 만들어보세요</p>
+<body class="min-h-screen bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-14">
+                <div class="flex items-center">
+                    <button id="backButton" class="mr-2 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 hidden" onclick="goBackToList()" aria-label="뒤로 가기">
+                        <i class="fas fa-arrow-left text-lg"></i>
+                    </button>
+                    <h1 class="text-xl font-bold text-gray-900">창작 공간</h1>
                 </div>
-                
-                <div class="genre-card slide-up" onclick="startWriting('poem')" style="animation-delay: 0.2s">
-                    <span class="genre-icon">🌸</span>
-                    <h3 class="genre-title">시</h3>
-                    <p class="genre-desc">감정과 순간을<br>아름다운 언어로 담아보세요</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-4">
+        <!-- List View -->
+        <div id="listView">
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-900 mb-1">내 작품들</h2>
+                <p class="text-sm text-gray-600">창작한 작품들을 관리하고 편집하세요</p>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fas fa-filter text-gray-500"></i>
+                    <select id="categoryFilter" class="flex-1 px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" onchange="filterByCategory()">
+                        <option value="전체">전체 카테고리</option>
+                        <option value="소설">소설</option>
+                        <option value="시">시</option>
+                        <option value="일기">일기</option>
+                        <option value="에세이">에세이</option>
+                        <option value="아이디어">아이디어</option>
+                        <option value="대본">대본</option>
+                    </select>
                 </div>
-                
-                <div class="genre-card slide-up" onclick="startWriting('diary')" style="animation-delay: 0.3s">
-                    <span class="genre-icon">📔</span>
-                    <h3 class="genre-title">일기</h3>
-                    <p class="genre-desc">하루의 기억과 생각을<br>솔직하게 기록해보세요</p>
+
+                <!-- Category Quick Stats -->
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="categoryStats">
+                    <!-- 카테고리 통계가 여기에 동적으로 생성됩니다 -->
                 </div>
-                
-                <div class="genre-card slide-up" onclick="startWriting('essay')" style="animation-delay: 0.4s">
-                    <span class="genre-icon">✍️</span>
-                    <h3 class="genre-title">에세이</h3>
-                    <p class="genre-desc">경험과 철학을<br>깊이 있게 풀어보세요</p>
+            </div>
+
+            <!-- Posts List -->
+            <div class="posts-container mobile-scroll pb-20">
+                <div class="grid gap-3" id="postsList">
+                    <!-- 작품 목록이 여기에 동적으로 생성됩니다 -->
                 </div>
-                
-                <div class="genre-card slide-up" onclick="startWriting('idea')" style="animation-delay: 0.5s">
-                    <span class="genre-icon">💡</span>
-                    <h3 class="genre-title">아이디어</h3>
-                    <p class="genre-desc">떠오르는 영감과 생각을<br>자유롭게 정리해보세요</p>
-                </div>
-                
-                <div class="genre-card slide-up" onclick="startWriting('script')" style="animation-delay: 0.6s">
-                    <span class="genre-icon">🎭</span>
-                    <h3 class="genre-title">대본</h3>
-                    <p class="genre-desc">인물들의 대화와 행동을<br>생생하게 써보세요</p>
+            </div>
+
+            <!-- Floating Action Button -->
+            <div class="fixed bottom-6 right-6 z-20">
+                <div class="floating-button" id="floatingButton">
+                    <button 
+                        class="h-14 w-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center"
+                        onclick="toggleFloatingMenu()"
+                        aria-label="새 작품 쓰기"
+                    >
+                        <i class="fas fa-plus text-xl"></i>
+                    </button>
+                    
+                    <!-- Category Selection Menu -->
+                    <div class="floating-menu absolute bottom-16 right-0 bg-white rounded-lg shadow-lg border border-gray-200 p-2 w-64 sm:w-48">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="startNewPiece('소설'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                                <div class="w-8 h-8 rounded-full category-novel flex items-center justify-center">
+                                    <i class="fas fa-book text-white"></i>
+                                </div>
+                                <span class="text-sm">소설</span>
+                            </button>
+                            <button onclick="startNewPiece('시'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                                <div class="w-8 h-8 rounded-full category-poem flex items-center justify-center">
+                                    <i class="fas fa-heart text-white"></i>
+                                </div>
+                                <span class="text-sm">시</span>
+                            </button>
+                            <button onclick="startNewPiece('일기'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                                <div class="w-8 h-8 rounded-full category-diary flex items-center justify-center">
+                                    <i class="fas fa-calendar text-white"></i>
+                                </div>
+                                <span class="text-sm">일기</span>
+                            </button>
+                            <button onclick="startNewPiece('에세이'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                                <div class="w-8 h-8 rounded-full category-essay flex items-center justify-center">
+                                    <i class="fas fa-file-alt text-white"></i>
+                                </div>
+                                <span class="text-sm">에세이</span>
+                            </button>
+                            <button onclick="startNewPiece('아이디어'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                                <div class="w-8 h-8 rounded-full category-idea flex items-center justify-center">
+                                    <i class="fas fa-lightbulb text-white"></i>
+                                </div>
+                                <span class="text-sm">아이디어</span>
+                            </button>
+                            <button onclick="startNewPiece('대본'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                                <div class="w-8 h-8 rounded-full category-script flex items-center justify-center">
+                                    <i class="fas fa-theater-masks text-white"></i>
+                                </div>
+                                <span class="text-sm">대본</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 작성 화면 -->
-        <div class="writing-screen" id="writingScreen">
-            <div class="app-layout">
-                <!-- 사이드바 -->
-                <div class="sidebar" id="sidebar">
-                    <div class="sidebar-header">
-                        <div class="logo">작가의 서재</div>
-                        <button class="new-file-btn" onclick="showNewFileModal()">+ 새 글</button>
+        <!-- Editor View -->
+        <div id="editorView" class="hidden pb-20 keyboard-adjust">
+            <div class="mb-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <div id="editorCategoryIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="text-white text-lg"></i>
                     </div>
-                    
-                    <div class="file-list" id="fileList">
-                        <!-- 파일 목록이 여기 생성됩니다 -->
-                    </div>
+                    <h2 id="editorTitle" class="text-xl font-bold text-gray-900">새 작품 쓰기</h2>
                 </div>
+                <p id="editorGuide" class="text-sm text-gray-600">창작 가이드가 여기에 표시됩니다.</p>
+            </div>
 
-                <!-- 메인 콘텐츠 -->
-                <div class="main-content">
-                    <div class="editor-header">
-                        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()">☰</button>
-                        
-                        <div class="editor-title" id="editorTitle">
-                            📚 새 글
-                        </div>
-                        
-                        <div class="editor-controls">
-                            <button class="control-btn" onclick="toggleSettings()">⚙️</button>
-                            <button class="control-btn" onclick="saveCurrentFile()">💾</button>
-                            <button class="control-btn" onclick="downloadCurrentFile()">📥</button>
-                            <button class="control-btn" onclick="goHome()">🏠</button>
-                        </div>
-                    </div>
-                    
-                    <div class="editor-area">
-                        <textarea class="editor" id="editor" placeholder="여기에 자유롭게 글을 써보세요..."></textarea>
+            <div class="bg-white border border-gray-200 shadow-sm rounded-lg">
+                <div class="p-4 space-y-5">
+                    <!-- Category Selection -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">카테고리</label>
+                        <select id="pieceCategory" class="w-full px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" onchange="updateEditorCategory()">
+                            <option value="소설">소설</option>
+                            <option value="시">시</option>
+                            <option value="일기">일기</option>
+                            <option value="에세이">에세이</option>
+                            <option value="아이디어">아이디어</option>
+                            <option value="대본">대본</option>
+                        </select>
                     </div>
 
-                    <div class="editor-footer">
-                        <div class="word-count" id="wordCount">0 글자 / 0 단어</div>
-                        <div class="status-indicators">
-                            <div class="auto-save-indicator" id="autoSaveIndicator">
-                                <span>●</span> 자동 저장됨
+                    <!-- Title -->
+                    <div class="space-y-2">
+                        <label for="pieceTitle" class="text-sm font-medium text-gray-700">제목</label>
+                        <input type="text" id="pieceTitle" class="w-full px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base" placeholder="제목을 입력하세요...">
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="w-full">
+                        <div class="flex border-b border-gray-200">
+                            <button class="tab-button active" onclick="switchTab('content')">내용</button>
+                            <button class="tab-button" onclick="switchTab('details')">세부사항</button>
+                            <button class="tab-button" onclick="switchTab('meta')">메타정보</button>
+                        </div>
+
+                        <!-- Content Tab -->
+                        <div id="contentTab" class="tab-content active pt-4">
+                            <div class="space-y-2">
+                                <label for="pieceContent" class="text-sm font-medium text-gray-700">내용</label>
+                                <textarea id="pieceContent" class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows="12" placeholder="내용을 입력하세요..." oninput="updateCharCount()"></textarea>
+                                <p id="charCount" class="text-sm text-gray-500">0자 작성됨</p>
+                            </div>
+                        </div>
+
+                        <!-- Details Tab -->
+                        <div id="detailsTab" class="tab-content pt-4 space-y-4">
+                            <div id="moodSection" class="space-y-2">
+                                <label class="text-sm font-medium text-gray-700">기분/분위기</label>
+                                <input type="text" id="pieceMood" class="w-full px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="오늘의 기분이나 작품의 분위기를 입력하세요">
+                            </div>
+                            
+                            <div id="charactersSection" class="space-y-2">
+                                <label class="text-sm font-medium text-gray-700">등장인물</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="newCharacter" class="flex-1 px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="등장인물 이름" onkeydown="if(event.key==='Enter') addCharacter()">
+                                    <button type="button" onclick="addCharacter()" class="px-4 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600">추가</button>
+                                </div>
+                                <div id="charactersList" class="flex flex-wrap gap-2 pt-2">
+                                    <!-- 등장인물 태그들이 여기에 표시됩니다 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Meta Tab -->
+                        <div id="metaTab" class="tab-content pt-4 space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-gray-700">태그</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="newTag" class="flex-1 px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="태그 입력" onkeydown="if(event.key==='Enter') addTag()">
+                                    <button type="button" onclick="addTag()" class="px-4 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600">추가</button>
+                                </div>
+                                <div id="tagsList" class="flex flex-wrap gap-2 pt-2">
+                                    <!-- 태그들이 여기에 표시됩니다 -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 새 파일 모달 -->
-        <div class="modal" id="newFileModal">
-            <div class="modal-content">
-                <h3 class="modal-title">새 글 만들기</h3>
-                <select class="modal-input" id="newFileGenre">
-                    <option value="novel">📚 소설</option>
-                    <option value="poem">🌸 시</option>
-                    <option value="diary">📔 일기</option>
-                    <option value="essay">✍️ 에세이</option>
-                    <option value="idea">💡 아이디어</option>
-                    <option value="script">🎭 대본</option>
-                </select>
-                <input type="text" class="modal-input" id="newFileName" placeholder="제목을 입력하세요">
-                <div class="modal-buttons">
-                    <button class="modal-btn secondary" onclick="closeNewFileModal()">취소</button>
-                    <button class="modal-btn primary" onclick="createNewFile()">만들기</button>
-                </div>
+            <!-- Action Buttons -->
+            <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex gap-3 z-10">
+                <button onclick="cancelEdit()" class="flex-1 h-12 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>취소
+                </button>
+                <button onclick="savePiece()" class="flex-1 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i><span id="saveButtonText">저장</span>
+                </button>
             </div>
         </div>
+    </main>
 
-        <!-- 설정 패널 -->
-        <div class="settings-panel" id="settingsPanel">
-            <h3 class="settings-title">⚙️ 작성 환경 설정</h3>
-            
-            <div class="setting-group">
-                <label class="setting-label">📝 폰트 선택</label>
-                <select class="font-selector" id="fontSelector">
-                    <option value="Noto Sans KR">노토 산스</option>
-                    <option value="Nanum Myeongjo">나눔명조</option>
-                    <option value="Nanum Gothic">나눔고딕</option>
-                    <option value="Gowun Dodum">고운도움</option>
-                    <option value="Gowun Batang">고운바탕</option>
-                    <option value="Hahmlet">함렛</option>
-                    <option value="IBM Plex Sans KR">IBM 플렉스 산스</option>
-                    <option value="Pretendard">프리텐다드</option>
-                    <option value="Spoqa Han Sans Neo">스포카 한 산스 네오</option>
-                    <option value="Noto Serif KR">노토 세리프</option>
-                </select>
-            </div>
-            
-            <div class="setting-group">
-                <label class="setting-label">📏 글자 크기</label>
-                <div class="font-size-control">
-                    <input type="range" class="font-size-slider" id="fontSizeSlider" min="14" max="24" value="18">
-                    <span class="font-size-display" id="fontSizeDisplay">18px</span>
-                </div>
-            </div>
-            
-            <div class="setting-group">
-                <label class="setting-label">🎨 배경 테마</label>
-                <div class="background-grid">
-                    <div class="bg-option bg-1 active" onclick="changeBackground('bg-1')"></div>
-                    <div class="bg-option bg-2" onclick="changeBackground('bg-2')"></div>
-                    <div class="bg-option bg-3" onclick="changeBackground('bg-3')"></div>
-                    <div class="bg-option bg-4" onclick="changeBackground('bg-4')"></div>
-                    <div class="bg-option bg-5" onclick="changeBackground('bg-5')"></div>
-                    <div class="bg-option bg-6" onclick="changeBackground('bg-6')"></div>
-                    <div class="bg-option bg-7" onclick="changeBackground('bg-7')"></div>
-                    <div class="bg-option bg-8" onclick="changeBackground('bg-8')"></div>
-                    <div class="bg-option bg-9" onclick="changeBackground('bg-9')"></div>
-                    <div class="bg-option bg-10" onclick="changeBackground('bg-10')"></div>
-                    <div class="bg-option bg-11" onclick="changeBackground('bg-11')"></div>
-                    <div class="bg-option bg-12" onclick="changeBackground('bg-12')"></div>
-                </div>
-                
-                <div class="upload-area" onclick="document.getElementById('bgUpload').click()">
-                    <input type="file" id="bgUpload" accept="image/*" style="display: none;" onchange="uploadBackground(event)">
-                    <div>📁 나만의 배경 이미지 업로드</div>
-                    <small>JPG, PNG 파일을 선택하세요</small>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 모바일 오버레이 -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden" onclick="hideFloatingMenu()"></div>
 
     <script>
-        // 전역 변수
-        let currentFiles = JSON.parse(localStorage.getItem('writerFiles') || '[]');
-        let currentFileId = null;
-        let currentGenre = 'novel';
-        let autoSaveTimer = null;
+        // 전역 변수들
+        let pieces = [
+            {
+                id: "1",
+                title: "첫 번째 소설",
+                content: "어둠이 내린 골목길에서 그녀는 운명적인 만남을 가졌다...",
+                preview: "어둠이 내린 골목길에서 그녀는 운명적인 만남을 가졌다...",
+                category: "소설",
+                createdAt: "2024-01-15",
+                characters: ["주인공", "신비한 남자"]
+            },
+            {
+                id: "2",
+                title: "봄날의 기억",
+                content: "벚꽃이 흩날리는 / 그 길에서 / 너를 만났다",
+                preview: "벚꽃이 흩날리는 / 그 길에서 / 너를 만났다",
+                category: "시",
+                createdAt: "2024-01-10",
+                mood: "그리움"
+            },
+            {
+                id: "3",
+                title: "오늘의 하루",
+                content: "오늘은 정말 바쁜 하루였다. 아침부터 회의가 연달아 있었고...",
+                preview: "오늘은 정말 바쁜 하루였다. 아침부터 회의가 연달아 있었고...",
+                category: "일기",
+                createdAt: "2024-01-05",
+                mood: "피곤함"
+            }
+        ];
+
+        let currentEditingPiece = null;
+        let currentFilter = "전체";
+
+        const categoryConfig = {
+            "소설": {
+                icon: "fas fa-book",
+                color: "category-novel",
+                lightColor: "category-novel-light",
+                placeholder: "이야기의 시작을 써보세요...",
+                guide: "인물, 배경, 갈등을 중심으로 이야기를 전개해보세요."
+            },
+            "시": {
+                icon: "fas fa-heart",
+                color: "category-poem",
+                lightColor: "category-poem-light",
+                placeholder: "마음속 감정을 시로 표현해보세요...",
+                guide: "운율과 리듬을 고려하며 감정을 담아보세요."
+            },
+            "일기": {
+                icon: "fas fa-calendar",
+                color: "category-diary",
+                lightColor: "category-diary-light",
+                placeholder: "오늘 하루는 어땠나요?",
+                guide: "솔직한 감정과 경험을 기록해보세요."
+            },
+            "에세이": {
+                icon: "fas fa-file-alt",
+                color: "category-essay",
+                lightColor: "category-essay-light",
+                placeholder: "주제에 대한 생각을 정리해보세요...",
+                guide: "서론-본론-결론 구조로 논리적으로 전개해보세요."
+            },
+            "아이디어": {
+                icon: "fas fa-lightbulb",
+                color: "category-idea",
+                lightColor: "category-idea-light",
+                placeholder: "떠오른 아이디어를 빠르게 기록하세요...",
+                guide: "자유롭게 생각을 펼쳐보세요. 나중에 발전시킬 수 있습니다."
+            },
+            "대본": {
+                icon: "fas fa-theater-masks",
+                color: "category-script",
+                lightColor: "category-script-light",
+                placeholder: "등장인물: \n대사를 작성해보세요...",
+                guide: "등장인물과 대사, 지문을 명확히 구분해서 작성하세요."
+            }
+        };
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            loadSettings();
-            updateFileList();
-            setupEventListeners();
-            startAutoSave();
+            // 로컬 스토리지에서 데이터 불러오기
+            const savedPieces = localStorage.getItem('writingPieces');
+            if (savedPieces) {
+                pieces = JSON.parse(savedPieces);
+            }
+            
+            renderCategoryStats();
+            renderPostsList();
+            
+            // 모바일 키보드 대응
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    if (window.innerWidth <= 640) {
+                        setTimeout(() => {
+                            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }
+                });
+            });
+            
+            // 터치 이벤트 최적화
+            document.addEventListener('touchstart', function() {}, {passive: true});
         });
 
-        // 이벤트 리스너 설정
-        function setupEventListeners() {
-            const editor = document.getElementById('editor');
-            const fontSelector = document.getElementById('fontSelector');
-            const fontSizeSlider = document.getElementById('fontSizeSlider');
-
-            // 에디터 변경 감지
-            editor.addEventListener('input', function() {
-                updateWordCount();
-                markAsUnsaved();
-            });
-
-            // 폰트 변경
-            fontSelector.addEventListener('change', function() {
-                changeFont(this.value);
-            });
-
-            // 폰트 크기 변경
-            fontSizeSlider.addEventListener('input', function() {
-                changeFontSize(this.value);
-            });
-
-            // 키보드 단축키
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    switch(e.key) {
-                        case 's':
-                            e.preventDefault();
-                            saveCurrentFile();
-                            break;
-                        case 'n':
-                            e.preventDefault();
-                            showNewFileModal();
-                            break;
-                    }
-                }
-            });
+        // 로컬 스토리지에 데이터 저장
+        function saveToLocalStorage() {
+            localStorage.setItem('writingPieces', JSON.stringify(pieces));
         }
 
-        // 장르별 글쓰기 시작
-        function startWriting(genre) {
-            currentGenre = genre;
-            const genreIcons = {
-                'novel': '📚',
-                'poem': '🌸',
-                'diary': '📔',
-                'essay': '✍️',
-                'idea': '💡',
-                'script': '🎭'
-            };
-            
-            const genreNames = {
-                'novel': '소설',
-                'poem': '시',
-                'diary': '일기',
-                'essay': '에세이',
-                'idea': '아이디어',
-                'script': '대본'
-            };
+        // 카테고리 통계 렌더링
+        function renderCategoryStats() {
+            const stats = {};
+            Object.keys(categoryConfig).forEach(cat => stats[cat] = 0);
+            pieces.forEach(piece => stats[piece.category]++);
 
-            document.getElementById('homeScreen').style.display = 'none';
-            document.getElementById('writingScreen').style.display = 'block';
-            
-            // 새 파일 생성
-            const newFile = {
-                id: Date.now(),
-                title: `새로운 ${genreNames[genre]}`,
-                genre: genre,
-                content: '',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            currentFiles.unshift(newFile);
-            saveFiles();
-            selectFile(newFile.id);
-            updateFileList();
-            
-            document.getElementById('editor').focus();
-        }
+            const statsContainer = document.getElementById('categoryStats');
+            statsContainer.innerHTML = '';
 
-        // 홈으로 돌아가기
-        function goHome() {
-            if (currentFileId) {
-                saveCurrentFile();
-            }
-            document.getElementById('writingScreen').style.display = 'none';
-            document.getElementById('homeScreen').style.display = 'flex';
-            currentFileId = null;
-        }
-
-        // 새 파일 모달 표시
-        function showNewFileModal() {
-            document.getElementById('newFileModal').classList.add('open');
-            document.getElementById('newFileName').focus();
-        }
-
-        // 새 파일 모달 닫기
-        function closeNewFileModal() {
-            document.getElementById('newFileModal').classList.remove('open');
-            document.getElementById('newFileName').value = '';
-        }
-
-        // 새 파일 생성
-        function createNewFile() {
-            const genre = document.getElementById('newFileGenre').value;
-            const title = document.getElementById('newFileName').value.trim() || '제목 없음';
-            
-            const newFile = {
-                id: Date.now(),
-                title: title,
-                genre: genre,
-                content: '',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            currentFiles.unshift(newFile);
-            saveFiles();
-            selectFile(newFile.id);
-            updateFileList();
-            closeNewFileModal();
-            document.getElementById('editor').focus();
-        }
-
-        // 파일 선택
-        function selectFile(fileId) {
-            const file = currentFiles.find(f => f.id === fileId);
-            if (!file) return;
-            
-            // 현재 파일 저장
-            if (currentFileId) {
-                saveCurrentFile();
-            }
-            
-            currentFileId = fileId;
-            currentGenre = file.genre;
-            
-            const genreIcons = {
-                'novel': '📚',
-                'poem': '🌸',
-                'diary': '📔',
-                'essay': '✍️',
-                'idea': '💡',
-                'script': '🎭'
-            };
-            
-            document.getElementById('editorTitle').innerHTML = `${genreIcons[file.genre]} ${file.title}`;
-            document.getElementById('editor').value = file.content;
-            updateWordCount();
-            updateFileList();
-        }
-
-        // 파일 목록 업데이트
-        function updateFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            
-            const genreIcons = {
-                'novel': '📚',
-                'poem': '🌸',
-                'diary': '📔',
-                'essay': '✍️',
-                'idea': '💡',
-                'script': '🎭'
-            };
-            
-            currentFiles.forEach(file => {
-                const fileItem = document.createElement('div');
-                fileItem.className = `file-item ${file.id === currentFileId ? 'active' : ''}`;
-                fileItem.onclick = () => selectFile(file.id);
+            Object.entries(categoryConfig).forEach(([category, config]) => {
+                const count = stats[category];
+                const isSelected = currentFilter === category;
                 
-                const date = new Date(file.updatedAt).toLocaleDateString('ko-KR');
+                const statCard = document.createElement('div');
+                statCard.className = `cursor-pointer transition-all duration-200 hover:shadow-md bg-white border border-gray-200 rounded-lg p-3 text-center touch-feedback ${isSelected ? 'ring-2 ring-blue-500' : ''}`;
+                statCard.onclick = () => filterByCategory(category);
                 
-                fileItem.innerHTML = `
-                    <div class="file-icon">${genreIcons[file.genre]}</div>
-                    <div class="file-info">
-                        <div class="file-name">${file.title}</div>
-                        <div class="file-date">${date}</div>
+                statCard.innerHTML = `
+                    <div class="w-8 h-8 rounded-full ${config.color} flex items-center justify-center mx-auto mb-1">
+                        <i class="${config.icon} text-white"></i>
                     </div>
-                    <div class="file-actions">
-                        <button class="file-action-btn" onclick="event.stopPropagation(); renameFile(${file.id})" title="이름 변경">✏️</button>
-                        <button class="file-action-btn" onclick="event.stopPropagation(); deleteFile(${file.id})" title="삭제">🗑️</button>
-                    </div>
+                    <p class="text-xs font-medium text-gray-900">${category}</p>
+                    <p class="text-xs text-gray-500">${count}개</p>
                 `;
                 
-                fileList.appendChild(fileItem);
+                statsContainer.appendChild(statCard);
             });
         }
 
-        // 파일 저장
-        function saveCurrentFile() {
-            if (!currentFileId) return;
+        // 작품 목록 렌더링
+        function renderPostsList() {
+            const filteredPieces = currentFilter === "전체" ? pieces : pieces.filter(piece => piece.category === currentFilter);
+            const listContainer = document.getElementById('postsList');
             
-            const file = currentFiles.find(f => f.id === currentFileId);
-            if (!file) return;
-            
-            file.content = document.getElementById('editor').value;
-            file.updatedAt = new Date().toISOString();
-            
-            saveFiles();
-            showAutoSaveIndicator();
+            if (filteredPieces.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 text-center">
+                        <p class="text-gray-500 mb-4">${currentFilter === "전체" ? "아직 작품이 없습니다. 첫 작품을 만들어보세요!" : `${currentFilter} 작품이 없습니다.`}</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            ${Object.entries(categoryConfig).map(([category, config]) => `
+                                <button onclick="startNewPiece('${category}')" class="flex items-center gap-2 px-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 touch-feedback">
+                                    <i class="${config.icon}"></i>
+                                    ${category} 쓰기
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = filteredPieces.map(piece => {
+                const config = categoryConfig[piece.category];
+                return `
+                    <div class="bg-white border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow duration-200 hover:border-gray-300 touch-feedback" onclick="editPiece('${piece.id}')">
+                        <div class="p-4 pb-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-2 flex-1">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${config.lightColor}">
+                                        <i class="${config.icon} mr-1"></i>
+                                        ${piece.category}
+                                    </span>
+                                    <h3 class="text-base font-semibold text-gray-900 line-clamp-2 flex-1">${piece.title}</h3>
+                                </div>
+                                <span class="text-xs text-gray-500 ml-2 flex-shrink-0">${piece.createdAt}</span>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <p class="text-sm text-gray-600 line-clamp-3 mb-2">${piece.preview}</p>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                ${piece.mood ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">기분: ${piece.mood}</span>` : ''}
+                                ${piece.characters && piece.characters.length > 0 ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">등장인물: ${piece.characters.join(', ')}</span>` : ''}
+                                ${piece.tags && piece.tags.length > 0 ? piece.tags.map(tag => `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs border border-gray-300 text-gray-700">#${tag}</span>`).join('') : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        // 파일 삭제
-        function deleteFile(fileId) {
-            if (confirm('정말로 이 파일을 삭제하시겠습니까?')) {
-                currentFiles = currentFiles.filter(f => f.id !== fileId);
-                saveFiles();
-                
-                if (currentFileId === fileId) {
-                    currentFileId = null;
-                    document.getElementById('editor').value = '';
-                    document.getElementById('editorTitle').innerHTML = '📚 새 글';
-                    updateWordCount();
-                }
-                
-                updateFileList();
+        // 카테고리 필터링
+        function filterByCategory(category) {
+            if (category) {
+                currentFilter = category;
+                document.getElementById('categoryFilter').value = category;
+            } else {
+                currentFilter = document.getElementById('categoryFilter').value;
+            }
+            renderCategoryStats();
+            renderPostsList();
+        }
+
+        // 플로팅 메뉴 토글
+        function toggleFloatingMenu() {
+            const button = document.getElementById('floatingButton');
+            const overlay = document.getElementById('overlay');
+            
+            if (button.classList.contains('active')) {
+                hideFloatingMenu();
+            } else {
+                button.classList.add('active');
+                overlay.classList.remove('hidden');
+            }
+        }
+        
+        // 플로팅 메뉴 숨기기
+        function hideFloatingMenu() {
+            const button = document.getElementById('floatingButton');
+            const overlay = document.getElementById('overlay');
+            
+            button.classList.remove('active');
+            overlay.classList.add('hidden');
+        }
+
+        // 새 작품 시작
+        function startNewPiece(category) {
+            currentEditingPiece = null;
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('editorView').classList.remove('hidden');
+            document.getElementById('backButton').classList.remove('hidden');
+            
+            // 카테고리 설정
+            document.getElementById('pieceCategory').value = category;
+            updateEditorCategory();
+            
+            // 폼 초기화
+            document.getElementById('pieceTitle').value = '';
+            document.getElementById('pieceContent').value = '';
+            document.getElementById('pieceMood').value = '';
+            document.getElementById('newCharacter').value = '';
+            document.getElementById('newTag').value = '';
+            document.getElementById('charactersList').innerHTML = '';
+            document.getElementById('tagsList').innerHTML = '';
+            document.getElementById('saveButtonText').textContent = '저장';
+            
+            updateCharCount();
+            updateCategoryVisibility();
+            
+            // 모바일에서 스크롤 맨 위로
+            window.scrollTo(0, 0);
+        }
+
+        // 작품 편집
+        function editPiece(pieceId) {
+            const piece = pieces.find(p => p.id === pieceId);
+            if (!piece) return;
+            
+            currentEditingPiece = piece;
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('editorView').classList.remove('hidden');
+            document.getElementById('backButton').classList.remove('hidden');
+            
+            // 폼에 데이터 채우기
+            document.getElementById('pieceCategory').value = piece.category;
+            document.getElementById('pieceTitle').value = piece.title;
+            document.getElementById('pieceContent').value = piece.content;
+            document.getElementById('pieceMood').value = piece.mood || '';
+            document.getElementById('saveButtonText').textContent = '수정';
+            
+            // 등장인물과 태그 렌더링
+            renderCharacters(piece.characters || []);
+            renderTags(piece.tags || []);
+            
+            updateEditorCategory();
+            updateCharCount();
+            updateCategoryVisibility();
+            
+            // 모바일에서 스크롤 맨 위로
+            window.scrollTo(0, 0);
+        }
+
+        // 편집기 카테고리 업데이트
+        function updateEditorCategory() {
+            const category = document.getElementById('pieceCategory').value;
+            const config = categoryConfig[category];
+            
+            const iconElement = document.getElementById('editorCategoryIcon');
+            iconElement.className = `w-10 h-10 rounded-full ${config.color} flex items-center justify-center`;
+            iconElement.innerHTML = `<i class="${config.icon} text-white"></i>`;
+            
+            document.getElementById('editorTitle').textContent = currentEditingPiece ? `${category} 편집` : `새 ${category} 쓰기`;
+            document.getElementById('editorGuide').textContent = config.guide;
+            document.getElementById('pieceContent').placeholder = config.placeholder;
+            
+            // 대본인 경우 폰트 변경
+            if (category === '대본') {
+                document.getElementById('pieceContent').style.fontFamily = 'monospace';
+            } else {
+                document.getElementById('pieceContent').style.fontFamily = '';
+            }
+            
+            updateCategoryVisibility();
+        }
+
+        // 카테고리별 필드 표시/숨김
+        function updateCategoryVisibility() {
+            const category = document.getElementById('pieceCategory').value;
+            const moodSection = document.getElementById('moodSection');
+            const charactersSection = document.getElementById('charactersSection');
+            
+            // 기분/분위기 필드
+            if (category === '일기' || category === '시') {
+                moodSection.style.display = 'block';
+            } else {
+                moodSection.style.display = 'none';
+            }
+            
+            // 등장인물 필드
+            if (category === '소설' || category === '대본') {
+                charactersSection.style.display = 'block';
+            } else {
+                charactersSection.style.display = 'none';
             }
         }
 
-        // 파일 이름 변경
-        function renameFile(fileId) {
-            const file = currentFiles.find(f => f.id === fileId);
-            if (!file) return;
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭 버튼과 콘텐츠 비활성화
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            const newTitle = prompt('새 제목을 입력하세요:', file.title);
-            if (newTitle && newTitle.trim()) {
-                file.title = newTitle.trim();
-                file.updatedAt = new Date().toISOString();
-                saveFiles();
-                updateFileList();
-                
-                if (currentFileId === fileId) {
-                    const genreIcons = {
-                        'novel': '📚',
-                        'poem': '🌸',
-                        'diary': '📔',
-                        'essay': '✍️',
-                        'idea': '💡',
-                        'script': '🎭'
-                    };
-                    document.getElementById('editorTitle').innerHTML = `${genreIcons[file.genre]} ${file.title}`;
-                }
-            }
-        }
-
-        // 파일 다운로드
-        function downloadCurrentFile() {
-            if (!currentFileId) return;
-            
-            const file = currentFiles.find(f => f.id === currentFileId);
-            if (!file) return;
-            
-            const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${file.title}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // 로컬 스토리지에 파일 저장
-        function saveFiles() {
-            localStorage.setItem('writerFiles', JSON.stringify(currentFiles));
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
         }
 
         // 글자 수 업데이트
-        function updateWordCount() {
-            const content = document.getElementById('editor').value;
-            const charCount = content.length;
-            const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+        function updateCharCount() {
+            const content = document.getElementById('pieceContent').value;
+            document.getElementById('charCount').textContent = `${content.length}자 작성됨`;
+        }
+
+        // 등장인물 추가
+        function addCharacter() {
+            const input = document.getElementById('newCharacter');
+            const character = input.value.trim();
             
-            document.getElementById('wordCount').textContent = `${charCount} 글자 / ${wordCount} 단어`;
-        }
-
-        // 자동 저장 표시
-        function showAutoSaveIndicator() {
-            const indicator = document.getElementById('autoSaveIndicator');
-            indicator.innerHTML = '<span style="color: green;">●</span> 저장됨';
-            setTimeout(() => {
-                indicator.innerHTML = '<span style="color: #8b6f47;">●</span> 자동 저장됨';
-            }, 2000);
-        }
-
-        // 미저장 상태 표시
-        function markAsUnsaved() {
-            const indicator = document.getElementById('autoSaveIndicator');
-            indicator.innerHTML = '<span style="color: orange;">●</span> 저장 중...';
-        }
-
-        // 자동 저장 시작
-        function startAutoSave() {
-            setInterval(() => {
-                if (currentFileId) {
-                    saveCurrentFile();
+            if (character) {
+                const currentCharacters = getCurrentCharacters();
+                if (!currentCharacters.includes(character)) {
+                    currentCharacters.push(character);
+                    renderCharacters(currentCharacters);
+                    input.value = '';
                 }
-            }, 5000); // 5초마다 자동 저장
-        }
-
-        // 설정 패널 토글
-        function toggleSettings() {
-            const panel = document.getElementById('settingsPanel');
-            panel.classList.toggle('open');
-        }
-
-        // 사이드바 토글 (모바일)
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-        }
-
-        // 폰트 변경
-        function changeFont(fontName) {
-            document.getElementById('editor').style.fontFamily = `'${fontName}', sans-serif`;
-            localStorage.setItem('writerFont', fontName);
-        }
-
-        // 폰트 크기 변경
-        function changeFontSize(size) {
-            document.getElementById('editor').style.fontSize = size + 'px';
-            document.getElementById('fontSizeDisplay').textContent = size + 'px';
-            localStorage.setItem('writerFontSize', size);
-        }
-
-        // 배경 변경
-        function changeBackground(bgClass) {
-            const body = document.body;
-            // 기존 배경 클래스 제거
-            body.className = body.className.replace(/bg-\d+/g, '');
-            body.classList.add(bgClass);
-            
-            // 활성 배경 표시 업데이트
-            document.querySelectorAll('.bg-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            document.querySelector(`.${bgClass}`).classList.add('active');
-            
-            localStorage.setItem('writerBackground', bgClass);
-        }
-
-        // 배경 이미지 업로드
-        function uploadBackground(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.body.style.backgroundImage = `url(${e.target.result})`;
-                localStorage.setItem('writerCustomBackground', e.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // 설정 로드
-        function loadSettings() {
-            // 폰트 설정
-            const savedFont = localStorage.getItem('writerFont');
-            if (savedFont) {
-                document.getElementById('fontSelector').value = savedFont;
-                changeFont(savedFont);
-            }
-            
-            // 폰트 크기 설정
-            const savedFontSize = localStorage.getItem('writerFontSize');
-            if (savedFontSize) {
-                document.getElementById('fontSizeSlider').value = savedFontSize;
-                changeFontSize(savedFontSize);
-            }
-            
-            // 배경 설정
-            const savedBackground = localStorage.getItem('writerBackground');
-            if (savedBackground) {
-                changeBackground(savedBackground);
-            }
-            
-            // 커스텀 배경 설정
-            const savedCustomBackground = localStorage.getItem('writerCustomBackground');
-            if (savedCustomBackground) {
-                document.body.style.backgroundImage = `url(${savedCustomBackground})`;
             }
         }
 
-        // 모달 외부 클릭시 닫기
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('newFileModal');
-            if (e.target === modal) {
-                closeNewFileModal();
-            }
+        // 현재 등장인물 목록 가져오기
+        function getCurrentCharacters() {
+            const characterElements = document.querySelectorAll('#charactersList .character-tag');
+            return Array.from(characterElements).map(el => el.textContent.replace(' ×', ''));
+        }
+
+        // 등장인물 렌더링
+        function renderCharacters(characters) {
+            const container = document.getElementById('charactersList');
+            container.innerHTML = characters.map(character => `
+                <span class="character-tag inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800 cursor-pointer touch-feedback" onclick="removeCharacter('${character}')">
+                    ${character} ×
+                </span>
+            `).join('');
+        }
+
+        // 등장인물 제거
+        function removeCharacter(character) {
+            const currentCharacters = getCurrentCharacters().filter(c => c !== character);
+            renderCharacters(currentCharacters);
+        }
+
+        // 태그 추가
+        function addTag() {
+            const input = document.getElementById('newTag');
+            const tag = input.value.trim();
             
-            const settingsPanel = document.getElementById('settingsPanel');
-            if (settingsPanel.classList.contains('open') && 
-                !settingsPanel.contains(e.target) && 
-                !e.target.closest('.control-btn')) {
-                settingsPanel.classList.remove('open');
-            }
-            
-            const sidebar = document.getElementById('sidebar');
-            if (window.innerWidth <= 768 && 
-                sidebar.classList.contains('open') && 
-                !sidebar.contains(e.target) && 
-                !e.target.closest('.mobile-menu-btn')) {
-                sidebar.classList.remove('open');
-            }
-        });
-        // 모바일 가로모드 사이드바 토글 JavaScript 코드
-    
-    // 사이드바 오버레이 요소 생성 및 추가 (HTML body 태그 직전에 추가)
-    const sidebarOverlay = document.createElement('div');
-    sidebarOverlay.className = 'sidebar-overlay';
-    sidebarOverlay.id = 'sidebarOverlay';
-    document.body.appendChild(sidebarOverlay);
-    
-    // 기존 toggleSidebar 함수를 수정
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
-        
-        if (sidebar.classList.contains('open')) {
-            // 사이드바 닫기
-            sidebar.classList.remove('open');
-            if (isLandscape) {
-                overlay.classList.remove('show');
-            }
-        } else {
-            // 사이드바 열기
-            sidebar.classList.add('open');
-            if (isLandscape) {
-                overlay.classList.add('show');
+            if (tag) {
+                const currentTags = getCurrentTags();
+                if (!currentTags.includes(tag)) {
+                    currentTags.push(tag);
+                    renderTags(currentTags);
+                    input.value = '';
+                }
             }
         }
-    }
-    
-    // 오버레이 클릭 시 사이드바 닫기
-    document.addEventListener('click', function(e) {
-        const overlay = document.getElementById('sidebarOverlay');
-        if (e.target === overlay) {
-            toggleSidebar();
+
+        // 현재 태그 목록 가져오기
+        function getCurrentTags() {
+            const tagElements = document.querySelectorAll('#tagsList .tag-item');
+            return Array.from(tagElements).map(el => el.textContent.replace('#', '').replace(' ×', ''));
         }
-    });
-    
-    // 화면 회전 감지 및 처리
-    window.addEventListener('orientationchange', function() {
-        setTimeout(() => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+
+        // 태그 렌더링
+        function renderTags(tags) {
+            const container = document.getElementById('tagsList');
+            container.innerHTML = tags.map(tag => `
+                <span class="tag-item inline-flex items-center px-2 py-1 rounded-full text-xs border border-gray-300 text-gray-700 cursor-pointer touch-feedback" onclick="removeTag('${tag}')">
+                    #${tag} ×
+                </span>
+            `).join('');
+        }
+
+        // 태그 제거
+        function removeTag(tag) {
+            const currentTags = getCurrentTags().filter(t => t !== tag);
+            renderTags(currentTags);
+        }
+
+        // 작품 저장
+        function savePiece() {
+            const title = document.getElementById('pieceTitle').value.trim();
+            const content = document.getElementById('pieceContent').value.trim();
+            const category = document.getElementById('pieceCategory').value;
+            const mood = document.getElementById('pieceMood').value.trim();
+            const characters = getCurrentCharacters();
+            const tags = getCurrentTags();
             
-            if (!isLandscape) {
-                // 세로모드로 변경시 오버레이 숨김
-                overlay.classList.remove('show');
+            if (!title || !content) {
+                alert('제목과 내용을 모두 입력해주세요.');
+                return;
             }
-        }, 100);
-    });
-    
-    // 윈도우 리사이즈 감지
-    window.addEventListener('resize', function() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
-        
-        if (!isLandscape) {
-            overlay.classList.remove('show');
+            
+            if (currentEditingPiece) {
+                // 기존 작품 수정
+                const index = pieces.findIndex(p => p.id === currentEditingPiece.id);
+                pieces[index] = {
+                    ...pieces[index],
+                    title,
+                    content,
+                    preview: content.substring(0, 120) + (content.length > 120 ? '...' : ''),
+                    category,
+                    mood: mood || undefined,
+                    characters: characters.length > 0 ? characters : undefined,
+                    tags: tags.length > 0 ? tags : undefined
+                };
+            } else {
+                // 새 작품 생성
+                const newPiece = {
+                    id: Date.now().toString(),
+                    title,
+                    content,
+                    preview: content.substring(0, 120) + (content.length > 120 ? '...' : ''),
+                    category,
+                    createdAt: new Date().toISOString().split('T')[0],
+                    mood: mood || undefined,
+                    characters: characters.length > 0 ? characters : undefined,
+                    tags: tags.length > 0 ? tags : undefined
+                };
+                pieces.unshift(newPiece);
+            }
+            
+            // 로컬 스토리지에 저장
+            saveToLocalStorage();
+            
+            goBackToList();
         }
-    });
+
+        // 편집 취소
+        function cancelEdit() {
+            goBackToList();
+        }
+
+        // 목록으로 돌아가기
+        function goBackToList() {
+            document.getElementById('editorView').classList.add('hidden');
+            document.getElementById('listView').classList.remove('hidden');
+            document.getElementById('backButton').classList.add('hidden');
+            
+            currentEditingPiece = null;
+            renderCategoryStats();
+            renderPostsList();
+        }
     </script>
 </body>
 </html>
