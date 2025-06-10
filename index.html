@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작가의 서재</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Gothic:wght@400;700&family=Gowun+Dodum&family=Gowun+Batang:wght@400;700&family=Hahmlet:wght@300;400;500;700&family=IBM+Plex+Sans+KR:wght@300;400;500;700&family=Pretendard:wght@300;400;500;700&family=Spoqa+Han+Sans+Neo:wght@300;400;700&family=Noto+Serif+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-beige: #f5f1eb;
+            --secondary-beige: #e8dcc6;
+            --dark-beige: #d4c4a8;
+            --accent-brown: #8b6f47;
+            --text-dark: #4a4137;
+            --text-light: #6b5d52;
+            --white-soft: #faf8f5;
+            --shadow: rgba(139, 111, 71, 0.15);
+            --sidebar-width: 280px;
+            --header-height: 60px;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--primary-beige);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: all 0.3s ease;
+        }
+
+        .overlay {
+            background: rgba(245, 241, 235, 0.85);
+            min-height: 100vh;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 홈 화면 */
+        .home-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .home-title {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 300;
+            color: var(--accent-brown);
+            margin-bottom: 1rem;
+            font-family: 'Gowun Batang', serif;
+        }
+
+        .home-subtitle {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            color: var(--text-light);
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        .genre-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .genre-card {
+            background: var(--white-soft);
+            border: 2px solid var(--secondary-beige);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .genre-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px var(--shadow);
+            border-color: var(--accent-brown);
+        }
+
+        .genre-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(139, 111, 71, 0.05), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .genre-card:hover::before {
+            opacity: 1;
+            animation: shimmer 1.5s ease-in-out;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .genre-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .genre-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--accent-brown);
+            margin-bottom: 0.5rem;
+        }
+
+        .genre-desc {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        /* 작성 화면 레이아웃 */
+        .writing-screen {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white-soft);
+            border-right: 1px solid var(--secondary-beige);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 15px var(--shadow);
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--secondary-beige);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-brown);
+            font-family: 'Gowun Batang', serif;
+        }
+
+        .new-file-btn {
+            background: var(--accent-brown);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .new-file-btn:hover {
+            background: #6b4d32;
+            transform: scale(1.05);
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .file-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .file-item:hover {
+            background: var(--secondary-beige);
+        }
+
+        .file-item.active {
+            background: var(--accent-brown);
+            color: white;
+        }
+
+        .file-icon {
+            font-size: 1.2rem;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-date {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.3rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .file-item:hover .file-actions {
+            opacity: 1;
+        }
+
+        .file-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .file-action-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* 메인 에디터 영역 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .editor-header {
+            height: var(--header-height);
+            background: var(--white-soft);
+            border-bottom: 1px solid var(--secondary-beige);
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 0 1.5rem;
+            gap: 1rem;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--accent-brown);
+        }
+
+        .editor-title {
+            flex: 1;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--accent-brown);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: var(--secondary-beige);
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .control-btn:hover {
+            background: var(--dark-beige);
+            transform: translateY(-2px);
+        }
+
+        .editor-area {
+            flex: 1;
+            background: var(--white-soft);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-dark);
+            resize: none;
+            font-family: 'Noto Sans KR', sans-serif;
+            padding: 2rem;
+        }
+
+        .editor::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .editor-footer {
+            padding: 1rem 2rem;
+            border-top: 1px solid var(--secondary-beige);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--white-soft);
+        }
+
+        .word-count {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .auto-save-indicator {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* 설정 패널 */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--white-soft);
+            box-shadow: -5px 0 20px var(--shadow);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-title {
+            font-size: 1.3rem;
+            color: var(--accent-brown);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .setting-group {
+            margin-bottom: 2rem;
+        }
+
+        .setting-label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.8rem;
+        }
+
+        .font-selector, .background-selector, .font-size-slider {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--secondary-beige);
+            border-radius: 10px;
+            background: white;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+
+        .font-selector:focus, .background-selector:focus {
+            outline: none;
+            border-color: var(--accent-brown);
+        }
+
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .font-size-display {
+            min-width: 3rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .background-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 1rem;
+        }
+
+        .bg-option {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .bg-option:hover {
+            transform: scale(1.05);
+        }
+
+        .bg-option.active {
+            border-color: var(--accent-brown);
+            box-shadow: 0 0 15px var(--shadow);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--secondary-beige);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-brown);
+            background: rgba(139, 111, 71, 0.05);
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.open {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white-soft);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--accent-brown);
+            margin-bottom: 1rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--secondary-beige);
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent-brown);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background: var(--accent-brown);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: var(--secondary-beige);
+            color: var(--text-dark);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 배경 이미지들 */
+        .bg-1 { background: linear-gradient(135deg, #f5f1eb 0%, #e8dcc6 100%); }
+        .bg-2 { background: linear-gradient(135deg, #fdf8f0 0%, #f0e6d2 100%); }
+        .bg-3 { background: linear-gradient(135deg, #f9f5f0 0%, #f0e68c 100%); }
+        .bg-4 { background: linear-gradient(135deg, #fff8dc 0%, #f5deb3 100%); }
+        .bg-5 { background: linear-gradient(135deg, #faf0e6 0%, #deb887 100%); }
+        .bg-6 { background: linear-gradient(135deg, #f5f5dc 0%, #d2b48c 100%); }
+        .bg-7 { background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); }
+        .bg-8 { background: linear-gradient(135deg, #f5fffa 0%, #f0fff0 100%); }
+        .bg-9 { background: linear-gradient(135deg, #fff5ee 0%, #ffd4c4 100%); }
+        .bg-10 { background: linear-gradient(135deg, #f8f8ff 0%, #e6e6fa 100%); }
+        .bg-11 { background: linear-gradient(135deg, #fffacd 0%, #ffefd5 100%); }
+        .bg-12 { background: linear-gradient(135deg, #fdf5e6 0%, #f4a460 100%); }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 100vw;
+                --header-height: 50px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 200;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .editor-header {
+                padding: 0 1rem;
+                height: var(--header-height);
+            }
+
+            .editor-title {
+                font-size: 1rem;
+            }
+
+            .editor-controls {
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .editor {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+
+            .editor-footer {
+                padding: 0.8rem 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .settings-panel {
+                width: 100vw;
+                right: -100vw;
+                padding: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .background-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .genre-selection {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            /* 모바일 가로모드 최적화 */
+            @media (orientation: landscape) and (max-height: 500px) {
+                .editor-header {
+                    height: 40px;
+                }
+
+                .editor {
+                    padding: 0.8rem;
+                }
+
+                .editor-footer {
+                    padding: 0.5rem;
+                }
+
+                .home-title {
+                    font-size: 2rem;
+                }
+
+                .home-subtitle {
+                    font-size: 1rem;
+                    margin-bottom: 1.5rem;
+                }
+
+                .genre-selection {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                }
+
+                .genre-card {
+                    padding: 1rem;
+                }
+
+                .genre-icon {
+                    font-size: 2rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .genre-title {
+                    font-size: 1.2rem;
+                }
+
+                .genre-desc {
+                    font-size: 0.8rem;
+                }
+            }
+        }
+
+        /* 터치 디바이스 최적화 */
+        @media (hover: none) and (pointer: coarse) {
+            .control-btn, .new-file-btn, .file-item {
+                min-height: 44px;
+            }
+
+            .file-actions {
+                opacity: 1;
+            }
+        }
+
+        /* 애니메이션 */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 스크롤바 스타일링 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-beige);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-brown);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b4d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <!-- 홈 화면 -->
+        <div class="home-screen" id="homeScreen">
+            <h1 class="home-title fade-in">작가의 서재</h1>
+            <p class="home-subtitle fade-in">오늘은 어떤 이야기를 써볼까요?</p>
+            
+            <div class="genre-selection">
+                <div class="genre-card slide-up" onclick="startWriting('novel')" style="animation-delay: 0.1s">
+                    <span class="genre-icon">📚</span>
+                    <h3 class="genre-title">소설</h3>
+                    <p class="genre-desc">긴 이야기와 인물들의<br>세계를 만들어보세요</p>
+                </div>
+                
+                <div class="genre-card slide-up" onclick="startWriting('poem')" style="animation-delay: 0.2s">
+                    <span class="genre-icon">🌸</span>
+                    <h3 class="genre-title">시</h3>
+                    <p class="genre-desc">감정과 순간을<br>아름다운 언어로 담아보세요</p>
+                </div>
+                
+                <div class="genre-card slide-up" onclick="startWriting('diary')" style="animation-delay: 0.3s">
+                    <span class="genre-icon">📔</span>
+                    <h3 class="genre-title">일기</h3>
+                    <p class="genre-desc">하루의 기억과 생각을<br>솔직하게 기록해보세요</p>
+                </div>
+                
+                <div class="genre-card slide-up" onclick="startWriting('essay')" style="animation-delay: 0.4s">
+                    <span class="genre-icon">✍️</span>
+                    <h3 class="genre-title">에세이</h3>
+                    <p class="genre-desc">경험과 철학을<br>깊이 있게 풀어보세요</p>
+                </div>
+                
+                <div class="genre-card slide-up" onclick="startWriting('idea')" style="animation-delay: 0.5s">
+                    <span class="genre-icon">💡</span>
+                    <h3 class="genre-title">아이디어</h3>
+                    <p class="genre-desc">떠오르는 영감과 생각을<br>자유롭게 정리해보세요</p>
+                </div>
+                
+                <div class="genre-card slide-up" onclick="startWriting('script')" style="animation-delay: 0.6s">
+                    <span class="genre-icon">🎭</span>
+                    <h3 class="genre-title">대본</h3>
+                    <p class="genre-desc">인물들의 대화와 행동을<br>생생하게 써보세요</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 작성 화면 -->
+        <div class="writing-screen" id="writingScreen">
+            <div class="app-layout">
+                <!-- 사이드바 -->
+                <div class="sidebar" id="sidebar">
+                    <div class="sidebar-header">
+                        <div class="logo">작가의 서재</div>
+                        <button class="new-file-btn" onclick="showNewFileModal()">+ 새 글</button>
+                    </div>
+                    
+                    <div class="file-list" id="fileList">
+                        <!-- 파일 목록이 여기 생성됩니다 -->
+                    </div>
+                </div>
+
+                <!-- 메인 콘텐츠 -->
+                <div class="main-content">
+                    <div class="editor-header">
+                        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()">☰</button>
+                        
+                        <div class="editor-title" id="editorTitle">
+                            📚 새 글
+                        </div>
+                        
+                        <div class="editor-controls">
+                            <button class="control-btn" onclick="toggleSettings()">⚙️</button>
+                            <button class="control-btn" onclick="saveCurrentFile()">💾</button>
+                            <button class="control-btn" onclick="downloadCurrentFile()">📥</button>
+                            <button class="control-btn" onclick="goHome()">🏠</button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-area">
+                        <textarea class="editor" id="editor" placeholder="여기에 자유롭게 글을 써보세요..."></textarea>
+                    </div>
+
+                    <div class="editor-footer">
+                        <div class="word-count" id="wordCount">0 글자 / 0 단어</div>
+                        <div class="status-indicators">
+                            <div class="auto-save-indicator" id="autoSaveIndicator">
+                                <span>●</span> 자동 저장됨
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 새 파일 모달 -->
+        <div class="modal" id="newFileModal">
+            <div class="modal-content">
+                <h3 class="modal-title">새 글 만들기</h3>
+                <select class="modal-input" id="newFileGenre">
+                    <option value="novel">📚 소설</option>
+                    <option value="poem">🌸 시</option>
+                    <option value="diary">📔 일기</option>
+                    <option value="essay">✍️ 에세이</option>
+                    <option value="idea">💡 아이디어</option>
+                    <option value="script">🎭 대본</option>
+                </select>
+                <input type="text" class="modal-input" id="newFileName" placeholder="제목을 입력하세요">
+                <div class="modal-buttons">
+                    <button class="modal-btn secondary" onclick="closeNewFileModal()">취소</button>
+                    <button class="modal-btn primary" onclick="createNewFile()">만들기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 패널 -->
+        <div class="settings-panel" id="settingsPanel">
+            <h3 class="settings-title">⚙️ 작성 환경 설정</h3>
+            
+            <div class="setting-group">
+                <label class="setting-label">📝 폰트 선택</label>
+                <select class="font-selector" id="fontSelector">
+                    <option value="Noto Sans KR">노토 산스</option>
+                    <option value="Nanum Myeongjo">나눔명조</option>
+                    <option value="Nanum Gothic">나눔고딕</option>
+                    <option value="Gowun Dodum">고운도움</option>
+                    <option value="Gowun Batang">고운바탕</option>
+                    <option value="Hahmlet">함렛</option>
+                    <option value="IBM Plex Sans KR">IBM 플렉스 산스</option>
+                    <option value="Pretendard">프리텐다드</option>
+                    <option value="Spoqa Han Sans Neo">스포카 한 산스 네오</option>
+                    <option value="Noto Serif KR">노토 세리프</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">📏 글자 크기</label>
+                <div class="font-size-control">
+                    <input type="range" class="font-size-slider" id="fontSizeSlider" min="14" max="24" value="18">
+                    <span class="font-size-display" id="fontSizeDisplay">18px</span>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">🎨 배경 테마</label>
+                <div class="background-grid">
+                    <div class="bg-option bg-1 active" onclick="changeBackground('bg-1')"></div>
+                    <div class="bg-option bg-2" onclick="changeBackground('bg-2')"></div>
+                    <div class="bg-option bg-3" onclick="changeBackground('bg-3')"></div>
+                    <div class="bg-option bg-4" onclick="changeBackground('bg-4')"></div>
+                    <div class="bg-option bg-5" onclick="changeBackground('bg-5')"></div>
+                    <div class="bg-option bg-6" onclick="changeBackground('bg-6')"></div>
+                    <div class="bg-option bg-7" onclick="changeBackground('bg-7')"></div>
+                    <div class="bg-option bg-8" onclick="changeBackground('bg-8')"></div>
+                    <div class="bg-option bg-9" onclick="changeBackground('bg-9')"></div>
+                    <div class="bg-option bg-10" onclick="changeBackground('bg-10')"></div>
+                    <div class="bg-option bg-11" onclick="changeBackground('bg-11')"></div>
+                    <div class="bg-option bg-12" onclick="changeBackground('bg-12')"></div>
+                </div>
+                
+                <div class="upload-area" onclick="document.getElementById('bgUpload').click()">
+                    <input type="file" id="bgUpload" accept="image/*" style="display: none;" onchange="uploadBackground(event)">
+                    <div>📁 나만의 배경 이미지 업로드</div>
+                    <small>JPG, PNG 파일을 선택하세요</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentFiles = JSON.parse(localStorage.getItem('writerFiles') || '[]');
+        let currentFileId = null;
+        let currentGenre = 'novel';
+        let autoSaveTimer = null;
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            updateFileList();
+            setupEventListeners();
+            startAutoSave();
+        });
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            const editor = document.getElementById('editor');
+            const fontSelector = document.getElementById('fontSelector');
+            const fontSizeSlider = document.getElementById('fontSizeSlider');
+
+            // 에디터 변경 감지
+            editor.addEventListener('input', function() {
+                updateWordCount();
+                markAsUnsaved();
+            });
+
+            // 폰트 변경
+            fontSelector.addEventListener('change', function() {
+                changeFont(this.value);
+            });
+
+            // 폰트 크기 변경
+            fontSizeSlider.addEventListener('input', function() {
+                changeFontSize(this.value);
+            });
+
+            // 키보드 단축키
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 's':
+                            e.preventDefault();
+                            saveCurrentFile();
+                            break;
+                        case 'n':
+                            e.preventDefault();
+                            showNewFileModal();
+                            break;
+                    }
+                }
+            });
+        }
+
+        // 장르별 글쓰기 시작
+        function startWriting(genre) {
+            currentGenre = genre;
+            const genreIcons = {
+                'novel': '📚',
+                'poem': '🌸',
+                'diary': '📔',
+                'essay': '✍️',
+                'idea': '💡',
+                'script': '🎭'
+            };
+            
+            const genreNames = {
+                'novel': '소설',
+                'poem': '시',
+                'diary': '일기',
+                'essay': '에세이',
+                'idea': '아이디어',
+                'script': '대본'
+            };
+
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('writingScreen').style.display = 'block';
+            
+            // 새 파일 생성
+            const newFile = {
+                id: Date.now(),
+                title: `새로운 ${genreNames[genre]}`,
+                genre: genre,
+                content: '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            currentFiles.unshift(newFile);
+            saveFiles();
+            selectFile(newFile.id);
+            updateFileList();
+            
+            document.getElementById('editor').focus();
+        }
+
+        // 홈으로 돌아가기
+        function goHome() {
+            if (currentFileId) {
+                saveCurrentFile();
+            }
+            document.getElementById('writingScreen').style.display = 'none';
+            document.getElementById('homeScreen').style.display = 'flex';
+            currentFileId = null;
+        }
+
+        // 새 파일 모달 표시
+        function showNewFileModal() {
+            document.getElementById('newFileModal').classList.add('open');
+            document.getElementById('newFileName').focus();
+        }
+
+        // 새 파일 모달 닫기
+        function closeNewFileModal() {
+            document.getElementById('newFileModal').classList.remove('open');
+            document.getElementById('newFileName').value = '';
+        }
+
+        // 새 파일 생성
+        function createNewFile() {
+            const genre = document.getElementById('newFileGenre').value;
+            const title = document.getElementById('newFileName').value.trim() || '제목 없음';
+            
+            const newFile = {
+                id: Date.now(),
+                title: title,
+                genre: genre,
+                content: '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            currentFiles.unshift(newFile);
+            saveFiles();
+            selectFile(newFile.id);
+            updateFileList();
+            closeNewFileModal();
+            document.getElementById('editor').focus();
+        }
+
+        // 파일 선택
+        function selectFile(fileId) {
+            const file = currentFiles.find(f => f.id === fileId);
+            if (!file) return;
+            
+            // 현재 파일 저장
+            if (currentFileId) {
+                saveCurrentFile();
+            }
+            
+            currentFileId = fileId;
+            currentGenre = file.genre;
+            
+            const genreIcons = {
+                'novel': '📚',
+                'poem': '🌸',
+                'diary': '📔',
+                'essay': '✍️',
+                'idea': '💡',
+                'script': '🎭'
+            };
+            
+            document.getElementById('editorTitle').innerHTML = `${genreIcons[file.genre]} ${file.title}`;
+            document.getElementById('editor').value = file.content;
+            updateWordCount();
+            updateFileList();
+        }
+
+        // 파일 목록 업데이트
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            const genreIcons = {
+                'novel': '📚',
+                'poem': '🌸',
+                'diary': '📔',
+                'essay': '✍️',
+                'idea': '💡',
+                'script': '🎭'
+            };
+            
+            currentFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = `file-item ${file.id === currentFileId ? 'active' : ''}`;
+                fileItem.onclick = () => selectFile(file.id);
+                
+                const date = new Date(file.updatedAt).toLocaleDateString('ko-KR');
+                
+                fileItem.innerHTML = `
+                    <div class="file-icon">${genreIcons[file.genre]}</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.title}</div>
+                        <div class="file-date">${date}</div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-btn" onclick="event.stopPropagation(); renameFile(${file.id})" title="이름 변경">✏️</button>
+                        <button class="file-action-btn" onclick="event.stopPropagation(); deleteFile(${file.id})" title="삭제">🗑️</button>
+                    </div>
+                `;
+                
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        // 파일 저장
+        function saveCurrentFile() {
+            if (!currentFileId) return;
+            
+            const file = currentFiles.find(f => f.id === currentFileId);
+            if (!file) return;
+            
+            file.content = document.getElementById('editor').value;
+            file.updatedAt = new Date().toISOString();
+            
+            saveFiles();
+            showAutoSaveIndicator();
+        }
+
+        // 파일 삭제
+        function deleteFile(fileId) {
+            if (confirm('정말로 이 파일을 삭제하시겠습니까?')) {
+                currentFiles = currentFiles.filter(f => f.id !== fileId);
+                saveFiles();
+                
+                if (currentFileId === fileId) {
+                    currentFileId = null;
+                    document.getElementById('editor').value = '';
+                    document.getElementById('editorTitle').innerHTML = '📚 새 글';
+                    updateWordCount();
+                }
+                
+                updateFileList();
+            }
+        }
+
+        // 파일 이름 변경
+        function renameFile(fileId) {
+            const file = currentFiles.find(f => f.id === fileId);
+            if (!file) return;
+            
+            const newTitle = prompt('새 제목을 입력하세요:', file.title);
+            if (newTitle && newTitle.trim()) {
+                file.title = newTitle.trim();
+                file.updatedAt = new Date().toISOString();
+                saveFiles();
+                updateFileList();
+                
+                if (currentFileId === fileId) {
+                    const genreIcons = {
+                        'novel': '📚',
+                        'poem': '🌸',
+                        'diary': '📔',
+                        'essay': '✍️',
+                        'idea': '💡',
+                        'script': '🎭'
+                    };
+                    document.getElementById('editorTitle').innerHTML = `${genreIcons[file.genre]} ${file.title}`;
+                }
+            }
+        }
+
+        // 파일 다운로드
+        function downloadCurrentFile() {
+            if (!currentFileId) return;
+            
+            const file = currentFiles.find(f => f.id === currentFileId);
+            if (!file) return;
+            
+            const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${file.title}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 로컬 스토리지에 파일 저장
+        function saveFiles() {
+            localStorage.setItem('writerFiles', JSON.stringify(currentFiles));
+        }
+
+        // 글자 수 업데이트
+        function updateWordCount() {
+            const content = document.getElementById('editor').value;
+            const charCount = content.length;
+            const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+            
+            document.getElementById('wordCount').textContent = `${charCount} 글자 / ${wordCount} 단어`;
+        }
+
+        // 자동 저장 표시
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.innerHTML = '<span style="color: green;">●</span> 저장됨';
+            setTimeout(() => {
+                indicator.innerHTML = '<span style="color: #8b6f47;">●</span> 자동 저장됨';
+            }, 2000);
+        }
+
+        // 미저장 상태 표시
+        function markAsUnsaved() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.innerHTML = '<span style="color: orange;">●</span> 저장 중...';
+        }
+
+        // 자동 저장 시작
+        function startAutoSave() {
+            setInterval(() => {
+                if (currentFileId) {
+                    saveCurrentFile();
+                }
+            }, 5000); // 5초마다 자동 저장
+        }
+
+        // 설정 패널 토글
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        }
+
+        // 사이드바 토글 (모바일)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // 폰트 변경
+        function changeFont(fontName) {
+            document.getElementById('editor').style.fontFamily = `'${fontName}', sans-serif`;
+            localStorage.setItem('writerFont', fontName);
+        }
+
+        // 폰트 크기 변경
+        function changeFontSize(size) {
+            document.getElementById('editor').style.fontSize = size + 'px';
+            document.getElementById('fontSizeDisplay').textContent = size + 'px';
+            localStorage.setItem('writerFontSize', size);
+        }
+
+        // 배경 변경
+        function changeBackground(bgClass) {
+            const body = document.body;
+            // 기존 배경 클래스 제거
+            body.className = body.className.replace(/bg-\d+/g, '');
+            body.classList.add(bgClass);
+            
+            // 활성 배경 표시 업데이트
+            document.querySelectorAll('.bg-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`.${bgClass}`).classList.add('active');
+            
+            localStorage.setItem('writerBackground', bgClass);
+        }
+
+        // 배경 이미지 업로드
+        function uploadBackground(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.body.style.backgroundImage = `url(${e.target.result})`;
+                localStorage.setItem('writerCustomBackground', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 설정 로드
+        function loadSettings() {
+            // 폰트 설정
+            const savedFont = localStorage.getItem('writerFont');
+            if (savedFont) {
+                document.getElementById('fontSelector').value = savedFont;
+                changeFont(savedFont);
+            }
+            
+            // 폰트 크기 설정
+            const savedFontSize = localStorage.getItem('writerFontSize');
+            if (savedFontSize) {
+                document.getElementById('fontSizeSlider').value = savedFontSize;
+                changeFontSize(savedFontSize);
+            }
+            
+            // 배경 설정
+            const savedBackground = localStorage.getItem('writerBackground');
+            if (savedBackground) {
+                changeBackground(savedBackground);
+            }
+            
+            // 커스텀 배경 설정
+            const savedCustomBackground = localStorage.getItem('writerCustomBackground');
+            if (savedCustomBackground) {
+                document.body.style.backgroundImage = `url(${savedCustomBackground})`;
+            }
+        }
+
+        // 모달 외부 클릭시 닫기
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('newFileModal');
+            if (e.target === modal) {
+                closeNewFileModal();
+            }
+            
+            const settingsPanel = document.getElementById('settingsPanel');
+            if (settingsPanel.classList.contains('open') && 
+                !settingsPanel.contains(e.target) && 
+                !e.target.closest('.control-btn')) {
+                settingsPanel.classList.remove('open');
+            }
+            
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('open') && 
+                !sidebar.contains(e.target) && 
+                !e.target.closest('.mobile-menu-btn')) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>
