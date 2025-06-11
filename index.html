@@ -1,233 +1,643 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>창작 공간</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        /* 카테고리 색상 */
-        .category-novel { background-color: #3b82f6; }
-        .category-poem { background-color: #ec4899; }
-        .category-diary { background-color: #10b981; }
-        .category-essay { background-color: #8b5cf6; }
-        .category-idea { background-color: #f59e0b; }
-        .category-script { background-color: #ef4444; }
-        
-        .category-novel-light { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-        .category-poem-light { background-color: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
-        .category-diary-light { background-color: #ecfdf5; color: #047857; border-color: #bbf7d0; }
-        .category-essay-light { background-color: #f3e8ff; color: #6d28d9; border-color: #ddd6fe; }
-        .category-idea-light { background-color: #fffbeb; color: #92400e; border-color: #fed7aa; }
-        .category-script-light { background-color: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-        
-        /* 모바일 최적화 스타일 */
-        body {
-            overscroll-behavior-y: contain; /* 모바일에서 당겨서 새로고침 방지 */
-            -webkit-tap-highlight-color: transparent; /* 탭 하이라이트 제거 */
-            touch-action: manipulation; /* 더블탭 줌 방지 */
-        }
-        
-        /* 모바일에서 터치 영역 확대 */
-        button, select, input[type="text"], textarea {
-            min-height: 44px; /* 애플 권장 최소 터치 영역 */
-        }
-        
-        /* 플로팅 메뉴 모바일 최적화 */
-        .floating-menu {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s, transform 0.2s;
-            transform: translateY(10px);
-        }
-        
-        .floating-button.active .floating-menu {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
-        }
-        
-        /* 모바일에서 스크롤 최적화 */
-        .mobile-scroll {
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-        }
-        
-        /* 텍스트 줄임 */
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        /* 탭 스타일 */
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .tab-button {
-            position: relative;
-            padding: 0.75rem 0;
-            width: 33.333%;
-            text-align: center;
-        }
-        
-        .tab-button.active {
-            color: #3b82f6;
-            font-weight: 500;
-        }
-        
-        .tab-button.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 25%;
-            width: 50%;
-            height: 2px;
-            background-color: #3b82f6;
-        }
-        
-        /* 모바일 키보드 대응 */
-        @media (max-width: 640px) {
-            .keyboard-adjust {
-                padding-bottom: 40vh; /* 키보드 높이 대응 */
-            }
-        }
-        
-        /* 모바일 스크롤 영역 */
-        .posts-container {
-            height: calc(100vh - 220px);
-            overflow-y: auto;
-        }
-        
-        /* 모바일 입력 필드 포커스 시 확대 방지 */
-        @media (max-width: 640px) {
-            input, textarea, select {
-                font-size: 16px; /* iOS에서 자동 확대 방지 */
-            }
-        }
-        
-        /* 모바일 터치 피드백 */
-        .touch-feedback:active {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-        
-        /* 삭제 확인 모달 */
-        .delete-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        
-        .delete-modal.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .delete-content {
-            width: 90%;
-            max-width: 400px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-        
-        .delete-modal.active .delete-content {
-            transform: scale(1);
-        }
-        
-        /* 삭제 버튼 스타일 */
-        .delete-button {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
-            background-color: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.2s, background-color 0.2s;
-        }
-        
-        .post-card:hover .delete-button {
-            opacity: 1;
-        }
-        
-        .delete-button:hover {
-            background-color: #ef4444;
-            color: white;
-        }
-        
-        /* 모바일에서는 항상 삭제 버튼 표시 */
-        @media (max-width: 640px) {
-            .delete-button {
-                opacity: 1;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>창작 공간</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Sunflower:wght@300;500&family=Jua&family=Gaegu:wght@400;700&family=Poor+Story&family=Black+Han+Sans&family=Gamja+Flower&family=Do+Hyeon&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f9fafb;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --card-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --bg-primary: #111827;
+        --bg-secondary: #1f2937;
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --border-color: #374151;
+        --card-bg: #1f2937;
+    }
+
+    body {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        overscroll-behavior-y: contain;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    .card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    .text-primary { color: var(--text-primary); }
+    .text-secondary { color: var(--text-secondary); }
+    .border-custom { border-color: var(--border-color); }
+
+    .category-novel { background-color: #3b82f6; }
+    .category-poem { background-color: #ec4899; }
+    .category-diary { background-color: #10b981; }
+    .category-essay { background-color: #8b5cf6; }
+    .category-idea { background-color: #f59e0b; }
+    .category-script { background-color: #ef4444; }
+    
+    .category-novel-light { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .category-poem-light { background-color: #fdf2f8; color: #be185d; border-color: #fbcfe8; }
+    .category-diary-light { background-color: #ecfdf5; color: #047857; border-color: #bbf7d0; }
+    .category-essay-light { background-color: #f3e8ff; color: #6d28d9; border-color: #ddd6fe; }
+    .category-idea-light { background-color: #fffbeb; color: #92400e; border-color: #fed7aa; }
+    .category-script-light { background-color: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    
+    button, select, input[type="text"], textarea { min-height: 44px; }
+    
+    .post-card {
+        transition: all 0.3s ease;
+        transform: translateX(0);
+        opacity: 1;
+    }
+    
+    .post-card.deleting {
+        transform: translateX(-100%);
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+        overflow: hidden;
+    }
+    
+    .floating-menu {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        transform: translateY(10px);
+    }
+    
+    .floating-button.active .floating-menu {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+    
+    .mobile-scroll {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .tab-button {
+        position: relative;
+        padding: 0.75rem 0;
+        width: 25%;
+        text-align: center;
+        transition: color 0.2s, font-weight 0.2s;
+    }
+    
+    .tab-button.active {
+        color: #3b82f6;
+        font-weight: 500;
+    }
+    
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 25%;
+        width: 50%;
+        height: 2px;
+        background-color: #3b82f6;
+    }
+    
+    @media (max-width: 640px) {
+        .keyboard-adjust { padding-bottom: 40vh; }
+        input, textarea, select { font-size: 16px; }
+    }
+    
+    .posts-container {
+        height: calc(100vh - 280px);
+        overflow-y: auto;
+    }
+    
+    .touch-feedback:active { background-color: rgba(0, 0, 0, 0.05); }
+    [data-theme="dark"] .touch-feedback:active { background-color: rgba(255, 255, 255, 0.05); }
+    
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    .modal.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .modal-content {
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    
+    .modal.active .modal-content { transform: scale(1); }
+    
+    .delete-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s, background-color 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .post-card:hover .delete-button { opacity: 1; }
+    .delete-button:hover {
+        background-color: #ef4444;
+        color: white;
+    }
+    
+    @media (max-width: 640px) {
+        .delete-button { opacity: 1; }
+    }
+    
+    .bg-image {
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        position: relative;
+    }
+    
+    .bg-image::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: -1;
+    }
+    
+    [data-theme="dark"] .bg-image::before { background: rgba(0, 0, 0, 0.5); }
+    
+    .inspiration-panel {
+        background-color: var(--inspiration-panel-bg, #6b7280);
+        color: var(--inspiration-text-color, white);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: background-color 0.3s ease;
+    }
+    
+    .inspiration-word {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        background-color: var(--inspiration-word-bg, #4b5563);
+        color: var(--inspiration-text-color, white);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .inspiration-word:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background-color: var(--inspiration-word-hover-bg, #374151);
+    }
+    
+    .inspiration-word.clicked { animation: pulse 0.6s ease-in-out; }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .inspiration-button {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .inspiration-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+    }
+    
+    .font-noto-sans { font-family: 'Noto Sans KR', sans-serif; }
+    .font-nanum-gothic { font-family: 'Nanum Gothic', sans-serif; }
+    .font-nanum-myeongjo { font-family: 'Nanum Myeongjo', serif; }
+    .font-sunflower { font-family: 'Sunflower', sans-serif; }
+    .font-jua { font-family: 'Jua', sans-serif; }
+    .font-gaegu { font-family: 'Gaegu', cursive; }
+    .font-poor-story { font-family: 'Poor Story', cursive; }
+    .font-black-han-sans { font-family: 'Black Han Sans', sans-serif; }
+    .font-gamja-flower { font-family: 'Gamja Flower', cursive; }
+    .font-do-hyeon { font-family: 'Do Hyeon', sans-serif; }
+    
+    .fullscreen-mode {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 100 !important;
+        background-color: var(--bg-secondary) !important;
+        padding: 2rem !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        font-size: 18px !important;
+        line-height: 1.6 !important;
+        resize: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    
+    .content-fullscreen-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        background: rgba(0, 0, 0, 0.1);
+        color: var(--text-secondary);
+        border: none;
+        border-radius: 50%;
+        width: 44px; /* increased size for better touch */
+        height: 44px; /* increased size for better touch */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s ease;
+    }
+    
+    .content-fullscreen-button:hover {
+        background: rgba(0, 0, 0, 0.2);
+        color: var(--text-primary);
+    }
+    
+    [data-theme="dark"] .content-fullscreen-button {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    [data-theme="dark"] .content-fullscreen-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .fullscreen-overlay-button {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 101;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+    }
+    
+    .auto-save-indicator {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+        pointer-events: none;
+    }
+    
+    .auto-save-indicator.show { opacity: 1; }
+    
+    .search-highlight {
+        background-color: #fef08a;
+        padding: 0.1rem 0.2rem;
+        border-radius: 0.25rem;
+    }
+    
+    [data-theme="dark"] .search-highlight {
+        background-color: #ca8a04;
+        color: #000;
+    }
+    
+    .file-upload-btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #374151;
+    }
+    
+    [data-theme="dark"] .file-upload-btn {
+        background-color: #374151;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+    
+    .file-upload-btn:hover { background-color: #e5e7eb; }
+    [data-theme="dark"] .file-upload-btn:hover { background-color: #4b5563; }
+    .file-upload-input { display: none; }
+    
+    .bg-preview {
+        width: 100%;
+        height: 80px;
+        border-radius: 8px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bg-preview-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 500;
+    }
+    
+    .chapter-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 8px;
+    }
+    
+    .chapter-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .chapter-item:last-child {
+        border-bottom: none;
+    }
+    
+    .chapter-item.active {
+        background-color: rgba(59, 130, 246, 0.1);
+    }
+    
+    .chapter-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .chapter-action-btn {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .chapter-action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: var(--text-primary);
+    }
+    
+    [data-theme="dark"] .chapter-action-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
 </head>
-<body class="min-h-screen bg-gray-50">
-    <!-- Navigation Bar -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-14">
-                <div class="flex items-center">
-                    <button id="backButton" class="mr-2 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 hidden" onclick="goBackToList()" aria-label="뒤로 가기">
-                        <i class="fas fa-arrow-left text-lg"></i>
-                    </button>
-                    <h1 class="text-xl font-bold text-gray-900">창작 공간</h1>
+<body data-theme="light" id="appBody">
+
+<div id="autoSaveIndicator" class="auto-save-indicator">
+    <i class="fas fa-check mr-1"></i>자동 저장됨
+</div>
+
+<nav class="card border-b sticky top-0 z-20 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center">
+                <button id="backButton" class="mr-2 w-10 h-10 flex items-center justify-center text-secondary hover:text-primary hidden touch-feedback rounded-lg" onclick="goBackToList()" aria-label="뒤로 가기">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <h1 class="text-xl font-bold text-primary">창작 공간</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="darkModeButton" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-primary touch-feedback rounded-lg" onclick="toggleDarkMode()" aria-label="다크 모드">
+                    <i id="darkModeIcon" class="fas fa-moon text-lg"></i>
+                </button>
+                <button id="settingsButton" class="w-10 h-10 flex items-center justify-center text-secondary hover:text-primary touch-feedback rounded-lg" onclick="openSettings()" aria-label="설정">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6" id="mainContent">
+    <div id="listView">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-primary mb-2">내 작품들</h2>
+            <p class="text-secondary">창작한 작품들을 관리하고 편집하세요</p>
+        </div>
+
+        <div class="mb-6">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary"></i>
+                <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-3 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" placeholder="작품 제목이나 내용으로 검색..." oninput="handleSearch()">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-filter text-secondary"></i>
+                <select id="categoryFilter" class="flex-1 px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" onchange="filterByCategory()">
+                    <option value="전체">전체 카테고리</option>
+                    <option value="소설">소설</option>
+                    <option value="시">시</option>
+                    <option value="일기">일기</option>
+                    <option value="에세이">에세이</option>
+                    <option value="아이디어">아이디어</option>
+                    <option value="대본">대본</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="categoryStats"></div>
+        </div>
+
+        <div class="posts-container mobile-scroll pb-20">
+            <div class="grid gap-3" id="postsList"></div>
+        </div>
+
+        <div class="fixed bottom-6 right-6 z-20">
+            <div class="floating-button" id="floatingButton">
+                <button class="h-14 w-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center" onclick="toggleFloatingMenu()" aria-label="새 작품 쓰기">
+                    <i class="fas fa-plus text-xl"></i>
+                </button>
+                
+                <div class="floating-menu absolute bottom-16 right-0 card rounded-lg shadow-lg border border-custom p-2 w-64 sm:w-48">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="startNewPiece('소설'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                            <div class="w-8 h-8 rounded-full category-novel flex items-center justify-center">
+                                <i class="fas fa-book text-white"></i>
+                            </div>
+                            <span class="text-sm text-primary">소설</span>
+                        </button>
+                        <button onclick="startNewPiece('시'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                            <div class="w-8 h-8 rounded-full category-poem flex items-center justify-center">
+                                <i class="fas fa-heart text-white"></i>
+                            </div>
+                            <span class="text-sm text-primary">시</span>
+                        </button>
+                        <button onclick="startNewPiece('일기'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                            <div class="w-8 h-8 rounded-full category-diary flex items-center justify-center">
+                                <i class="fas fa-calendar text-white"></i>
+                            </div>
+                            <span class="text-sm text-primary">일기</span>
+                        </button>
+                        <button onclick="startNewPiece('에세이'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                            <div class="w-8 h-8 rounded-full category-essay flex items-center justify-center">
+                                <i class="fas fa-file-alt text-white"></i>
+                            </div>
+                            <span class="text-sm text-primary">에세이</span>
+                        </button>
+                        <button onclick="startNewPiece('아이디어'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                            <div class="w-8 h-8 rounded-full category-idea flex items-center justify-center">
+                                <i class="fas fa-lightbulb text-white"></i>
+                            </div>
+                            <span class="text-sm text-primary">아이디어</span>
+                        </button>
+                        <button onclick="startNewPiece('대본'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
+                            <div class="w-8 h-8 rounded-full category-script flex items-center justify-center">
+                                <i class="fas fa-theater-masks text-white"></i>
+                            </div>
+                            <span class="text-sm text-primary">대본</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-4">
-        <!-- List View -->
-        <div id="listView">
-            <div class="mb-4">
-                <h2 class="text-xl font-bold text-gray-900 mb-1">내 작품들</h2>
-                <p class="text-sm text-gray-600">창작한 작품들을 관리하고 편집하세요</p>
+    <div id="editorView" class="hidden pb-20 keyboard-adjust">
+        <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                    <div id="editorCategoryIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="text-white text-lg"></i>
+                    </div>
+                    <h2 id="editorTitle" class="text-xl font-bold text-primary">새 작품 쓰기</h2>
+                </div>
+                <div id="lastSaved" class="text-sm text-secondary hidden"></div>
             </div>
+            <p id="editorGuide" class="text-sm text-secondary">창작 가이드가 여기에 표시됩니다.</p>
+        </div>
 
-            <!-- Category Filter -->
-            <div class="mb-4">
-                <div class="flex items-center gap-2 mb-3">
-                    <i class="fas fa-filter text-gray-500"></i>
-                    <select id="categoryFilter" class="flex-1 px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" onchange="filterByCategory()">
-                        <option value="전체">전체 카테고리</option>
+        <div id="inspirationPanel" class="inspiration-panel hidden">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-magic text-xl"></i>
+                    <h3 class="font-bold">AI 영감 단어</h3>
+                </div>
+                <button onclick="generateInspirationWords()" class="inspiration-button">
+                    <i class="fas fa-refresh mr-1"></i>새로고침
+                </button>
+            </div>
+            <p class="text-sm mb-3 opacity-90">창작에 도움이 될 영감 단어들입니다. 클릭하면 텍스트에 추가됩니다.</p>
+            <div id="inspirationWords" class="flex flex-wrap"></div>
+        </div>
+
+        <div class="card border border-custom shadow-sm rounded-lg" id="editorCard">
+            <div class="p-4 space-y-5">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-primary">카테고리</label>
+                    <select id="pieceCategory" class="w-full px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" onchange="updateEditorCategory()">
                         <option value="소설">소설</option>
                         <option value="시">시</option>
                         <option value="일기">일기</option>
@@ -237,721 +647,1020 @@
                     </select>
                 </div>
 
-                <!-- Category Quick Stats -->
-                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="categoryStats">
-                    <!-- 카테고리 통계가 여기에 동적으로 생성됩니다 -->
+                <div class="space-y-2">
+                    <label for="pieceTitle" class="text-sm font-medium text-primary">제목</label>
+                    <input type="text" id="pieceTitle" class="w-full px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base card" placeholder="제목을 입력하세요..." oninput="handleAutoSave()">
                 </div>
-            </div>
 
-            <!-- Posts List -->
-            <div class="posts-container mobile-scroll pb-20">
-                <div class="grid gap-3" id="postsList">
-                    <!-- 작품 목록이 여기에 동적으로 생성됩니다 -->
-                </div>
-            </div>
+                <div class="w-full">
+                    <div class="flex border-b border-custom">
+                        <button class="tab-button active" onclick="switchTab(this, 'content')">내용</button>
+                        <button class="tab-button" onclick="switchTab(this, 'details')">세부사항</button>
+                        <button class="tab-button" onclick="switchTab(this, 'meta')">메타정보</button>
+                        <button class="tab-button" onclick="switchTab(this, 'settings')">설정</button>
+                    </div>
 
-            <!-- Floating Action Button -->
-            <div class="fixed bottom-6 right-6 z-20">
-                <div class="floating-button" id="floatingButton">
-                    <button 
-                        class="h-14 w-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center"
-                        onclick="toggleFloatingMenu()"
-                        aria-label="새 작품 쓰기"
-                    >
-                        <i class="fas fa-plus text-xl"></i>
-                    </button>
-                    
-                    <!-- Category Selection Menu -->
-                    <div class="floating-menu absolute bottom-16 right-0 bg-white rounded-lg shadow-lg border border-gray-200 p-2 w-64 sm:w-48">
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="startNewPiece('소설'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
-                                <div class="w-8 h-8 rounded-full category-novel flex items-center justify-center">
-                                    <i class="fas fa-book text-white"></i>
-                                </div>
-                                <span class="text-sm">소설</span>
-                            </button>
-                            <button onclick="startNewPiece('시'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
-                                <div class="w-8 h-8 rounded-full category-poem flex items-center justify-center">
-                                    <i class="fas fa-heart text-white"></i>
-                                </div>
-                                <span class="text-sm">시</span>
-                            </button>
-                            <button onclick="startNewPiece('일기'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
-                                <div class="w-8 h-8 rounded-full category-diary flex items-center justify-center">
-                                    <i class="fas fa-calendar text-white"></i>
-                                </div>
-                                <span class="text-sm">일기</span>
-                            </button>
-                            <button onclick="startNewPiece('에세이'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
-                                <div class="w-8 h-8 rounded-full category-essay flex items-center justify-center">
-                                    <i class="fas fa-file-alt text-white"></i>
-                                </div>
-                                <span class="text-sm">에세이</span>
-                            </button>
-                            <button onclick="startNewPiece('아이디어'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
-                                <div class="w-8 h-8 rounded-full category-idea flex items-center justify-center">
-                                    <i class="fas fa-lightbulb text-white"></i>
-                                </div>
-                                <span class="text-sm">아이디어</span>
-                            </button>
-                            <button onclick="startNewPiece('대본'); hideFloatingMenu();" class="flex items-center gap-2 px-3 py-3 text-left hover:bg-gray-100 rounded touch-feedback">
-                                <div class="w-8 h-8 rounded-full category-script flex items-center justify-center">
-                                    <i class="fas fa-theater-masks text-white"></i>
-                                </div>
-                                <span class="text-sm">대본</span>
-                            </button>
+                    <div id="contentTab" class="tab-content active pt-4">
+                        <div id="novelChaptersSection" class="space-y-4 hidden">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-medium text-primary">챕터</h3>
+                                <button onclick="addChapter()" class="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600">
+                                    <i class="fas fa-plus mr-1"></i>새 챕터
+                                </button>
+                            </div>
+                            <div id="chapterList" class="chapter-list"></div>
+                            <div id="currentChapterInfo" class="text-sm text-secondary"></div>
+                        </div>
+                        
+                        <div class="space-y-2 relative">
+                            <div class="flex justify-between items-center">
+                                <label for="pieceContent" class="text-sm font-medium text-primary">내용</label>
+                                <button id="contentFullscreenButton" class="content-fullscreen-button" onclick="toggleFullscreen()" aria-label="전체화면">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                            <textarea id="pieceContent" class="w-full px-3 py-3 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none card font-noto-sans" rows="12" placeholder="내용을 입력하세요..." oninput="updateCharCount(); handleAutoSave()"></textarea>
+                            <p id="charCount" class="text-sm text-secondary">0자 작성됨</p>
+                        </div>
+                    </div>
+
+                    <div id="detailsTab" class="tab-content pt-4 space-y-4">
+                        <div id="moodSection" class="space-y-2">
+                            <label class="text-sm font-medium text-primary">기분/분위기</label>
+                            <input type="text" id="pieceMood" class="w-full px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" placeholder="오늘의 기분이나 작품의 분위기를 입력하세요" oninput="handleAutoSave()">
+                        </div>
+                        
+                        <div id="charactersSection" class="space-y-2">
+                            <label class="text-sm font-medium text-primary">등장인물</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="newCharacter" class="flex-1 px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" placeholder="등장인물 이름" onkeydown="if(event.key==='Enter') addCharacter()">
+                                <button type="button" onclick="addCharacter()" class="px-4 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600">추가</button>
+                            </div>
+                            <div id="charactersList" class="flex flex-wrap gap-2 pt-2"></div>
+                        </div>
+                    </div>
+
+                    <div id="metaTab" class="tab-content pt-4 space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-primary">태그</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="newTag" class="flex-1 px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" placeholder="태그 입력" onkeydown="if(event.key==='Enter') addTag()">
+                                <button type="button" onclick="addTag()" class="px-4 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600">추가</button>
+                            </div>
+                            <div id="tagsList" class="flex flex-wrap gap-2 pt-2"></div>
+                        </div>
+                    </div>
+
+                    <div id="settingsTab" class="tab-content pt-4 space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-primary">폰트</label>
+                            <select id="editorFont" class="w-full px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" onchange="updateEditorFont()">
+                                <option value="font-noto-sans">노토 산스</option>
+                                <option value="font-nanum-gothic">나눔 고딕</option>
+                                <option value="font-nanum-myeongjo">나눔 명조</option>
+                                <option value="font-sunflower">선플라워</option>
+                                <option value="font-jua">주아</option>
+                                <option value="font-gaegu">개구</option>
+                                <option value="font-poor-story">푸어 스토리</option>
+                                <option value="font-black-han-sans">검은 고딕</option>
+                                <option value="font-gamja-flower">감자꽃</option>
+                                <option value="font-do-hyeon">도현</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-primary">글자 크기</label>
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm text-secondary">작게</span>
+                                <input type="range" min="12" max="24" value="16" class="flex-1" id="editorFontSize" oninput="updateEditorFontSize()">
+                                <span class="text-sm text-secondary">크게</span>
+                            </div>
+                            <div class="text-center">
+                                <span id="editorFontSizeValue" class="text-sm font-medium text-primary">16px</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-primary">에디터 배경색</label>
+                            <div class="flex flex-wrap gap-2" id="editorBgSelector">
+                                <!-- Buttons will be dynamically generated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Editor View -->
-        <div id="editorView" class="hidden pb-20 keyboard-adjust">
-            <div class="mb-4">
-                <div class="flex items-center gap-3 mb-2">
-                    <div id="editorCategoryIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
-                        <i class="text-white text-lg"></i>
-                    </div>
-                    <h2 id="editorTitle" class="text-xl font-bold text-gray-900">새 작품 쓰기</h2>
-                </div>
-                <p id="editorGuide" class="text-sm text-gray-600">창작 가이드가 여기에 표시됩니다.</p>
-            </div>
-
-            <div class="bg-white border border-gray-200 shadow-sm rounded-lg">
-                <div class="p-4 space-y-5">
-                    <!-- Category Selection -->
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-gray-700">카테고리</label>
-                        <select id="pieceCategory" class="w-full px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" onchange="updateEditorCategory()">
-                            <option value="소설">소설</option>
-                            <option value="시">시</option>
-                            <option value="일기">일기</option>
-                            <option value="에세이">에세이</option>
-                            <option value="아이디어">아이디어</option>
-                            <option value="대본">대본</option>
-                        </select>
-                    </div>
-
-                    <!-- Title -->
-                    <div class="space-y-2">
-                        <label for="pieceTitle" class="text-sm font-medium text-gray-700">제목</label>
-                        <input type="text" id="pieceTitle" class="w-full px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base" placeholder="제목을 입력하세요...">
-                    </div>
-
-                    <!-- Tabs -->
-                    <div class="w-full">
-                        <div class="flex border-b border-gray-200">
-                            <button class="tab-button active" onclick="switchTab('content')">내용</button>
-                            <button class="tab-button" onclick="switchTab('details')">세부사항</button>
-                            <button class="tab-button" onclick="switchTab('meta')">메타정보</button>
-                        </div>
-
-                        <!-- Content Tab -->
-                        <div id="contentTab" class="tab-content active pt-4">
-                            <div class="space-y-2">
-                                <label for="pieceContent" class="text-sm font-medium text-gray-700">내용</label>
-                                <textarea id="pieceContent" class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows="12" placeholder="내용을 입력하세요..." oninput="updateCharCount()"></textarea>
-                                <p id="charCount" class="text-sm text-gray-500">0자 작성됨</p>
-                            </div>
-                        </div>
-
-                        <!-- Details Tab -->
-                        <div id="detailsTab" class="tab-content pt-4 space-y-4">
-                            <div id="moodSection" class="space-y-2">
-                                <label class="text-sm font-medium text-gray-700">기분/분위기</label>
-                                <input type="text" id="pieceMood" class="w-full px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="오늘의 기분이나 작품의 분위기를 입력하세요">
-                            </div>
-                            
-                            <div id="charactersSection" class="space-y-2">
-                                <label class="text-sm font-medium text-gray-700">등장인물</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="newCharacter" class="flex-1 px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="등장인물 이름" onkeydown="if(event.key==='Enter') addCharacter()">
-                                    <button type="button" onclick="addCharacter()" class="px-4 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600">추가</button>
-                                </div>
-                                <div id="charactersList" class="flex flex-wrap gap-2 pt-2">
-                                    <!-- 등장인물 태그들이 여기에 표시됩니다 -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Meta Tab -->
-                        <div id="metaTab" class="tab-content pt-4 space-y-4">
-                            <div class="space-y-2">
-                                <label class="text-sm font-medium text-gray-700">태그</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="newTag" class="flex-1 px-3 h-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="태그 입력" onkeydown="if(event.key==='Enter') addTag()">
-                                    <button type="button" onclick="addTag()" class="px-4 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600">추가</button>
-                                </div>
-                                <div id="tagsList" class="flex flex-wrap gap-2 pt-2">
-                                    <!-- 태그들이 여기에 표시됩니다 -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex gap-3 z-10">
-                <button onclick="cancelEdit()" class="flex-1 h-12 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center justify-center">
-                    <i class="fas fa-times mr-2"></i>취소
-                </button>
-                <button onclick="savePiece()" class="flex-1 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center">
-                    <i class="fas fa-save mr-2"></i><span id="saveButtonText">저장</span>
-                </button>
-            </div>
+        <div class="fixed bottom-0 left-0 right-0 card border-t border-custom p-3 flex gap-3 z-10" id="actionButtons">
+            <button onclick="cancelEdit()" class="flex-1 h-12 border border-custom text-primary rounded-lg hover:bg-gray-50 flex items-center justify-center touch-feedback">
+                <i class="fas fa-times mr-2"></i>취소
+            </button>
+            <button onclick="savePiece(true)" class="flex-1 h-12 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center">
+                <i class="fas fa-save mr-2"></i><span id="saveButtonText">저장</span>
+            </button>
+            <button onclick="exportPiece()" class="px-4 h-12 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center">
+                <i class="fas fa-download mr-2"></i>내보내기
+            </button>
         </div>
-    </main>
+    </div>
+</main>
 
-    <!-- 모바일 오버레이 -->
-    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden" onclick="hideFloatingMenu()"></div>
-    
-    <!-- 삭제 확인 모달 -->
-    <div id="deleteModal" class="delete-modal">
-        <div class="delete-content">
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900">작품 삭제</h3>
-                        <p class="text-sm text-gray-500">이 작업은 되돌릴 수 없습니다.</p>
-                    </div>
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden" onclick="hideFloatingMenu()"></div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
                 </div>
-                <p class="text-gray-700 mb-6">
-                    "<span id="deleteTitle" class="font-medium"></span>" 작품을 정말 삭제하시겠습니까?
-                </p>
-                <div class="flex gap-3">
-                    <button onclick="closeDeleteModal()" class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                        취소
-                    </button>
-                    <button onclick="confirmDelete()" class="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                        삭제
-                    </button>
+                <div>
+                    <h3 class="text-lg font-bold text-primary">작품 삭제</h3>
+                    <p class="text-sm text-secondary">이 작업은 되돌릴 수 없습니다.</p>
                 </div>
+            </div>
+            <p class="text-primary mb-6">
+                "<span id="deleteTitle" class="font-medium"></span>" 작품을 정말 삭제하시겠습니까?
+            </p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 px-4 py-3 border border-custom text-primary rounded-lg hover:bg-gray-50 touch-feedback">취소</button>
+                <button onclick="confirmDelete()" class="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600">삭제</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // 전역 변수들
-        let pieces = [
-            {
-                id: "1",
-                title: "첫 번째 소설",
-                content: "어둠이 내린 골목길에서 그녀는 운명적인 만남을 가졌다...",
-                preview: "어둠이 내린 골목길에서 그녀는 운명적인 만남을 가졌다...",
-                category: "소설",
-                createdAt: "2024-01-15",
-                characters: ["주인공", "신비한 남자"]
-            },
-            {
-                id: "2",
-                title: "봄날의 기억",
-                content: "벚꽃이 흩날리는 / 그 길에서 / 너를 만났다",
-                preview: "벚꽃이 흩날리는 / 그 길에서 / 너를 만났다",
-                category: "시",
-                createdAt: "2024-01-10",
-                mood: "그리움"
-            },
-            {
-                id: "3",
-                title: "오늘의 하루",
-                content: "오늘은 정말 바쁜 하루였다. 아침부터 회의가 연달아 있었고...",
-                preview: "오늘은 정말 바쁜 하루였다. 아침부터 회의가 연달아 있었고...",
-                category: "일기",
-                createdAt: "2024-01-05",
-                mood: "피곤함"
-            }
-        ];
+<div id="exportModal" class="modal">
+    <div class="modal-content">
+        <div class="p-6">
+            <h3 class="text-lg font-bold text-primary mb-4">작품 내보내기</h3>
+            <p class="text-secondary mb-6">어떤 형식으로 내보내시겠습니까?</p>
+            <div class="space-y-3">
+                <button onclick="downloadFile('txt')" class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center">
+                    <i class="fas fa-file-alt mr-2"></i>텍스트 파일 (.txt)
+                </button>
+                <button onclick="downloadFile('json')" class="w-full px-4 py-3 border border-custom text-primary rounded-lg hover:bg-gray-50 flex items-center justify-center touch-feedback">
+                    <i class="fas fa-code mr-2"></i>JSON 파일 (.json)
+                </button>
+                <button onclick="downloadFile('html')" class="w-full px-4 py-3 border border-custom text-primary rounded-lg hover:bg-gray-50 flex items-center justify-center touch-feedback">
+                    <i class="fas fa-globe mr-2"></i>HTML 파일 (.html)
+                </button>
+            </div>
+            <div class="mt-4">
+                <button onclick="closeExportModal()" class="w-full px-4 py-3 border border-custom text-secondary rounded-lg hover:bg-gray-50 touch-feedback">취소</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        let currentEditingPiece = null;
-        let currentFilter = "전체";
-        let pieceToDelete = null; // 삭제할 작품 ID 저장
+<div id="chapterModal" class="modal">
+    <div class="modal-content">
+        <div class="p-6">
+            <h3 id="chapterModalTitle" class="text-lg font-bold text-primary mb-4">챕터 추가</h3>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label for="chapterTitle" class="text-sm font-medium text-primary">챕터 제목</label>
+                    <input type="text" id="chapterTitle" class="w-full px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" placeholder="챕터 제목을 입력하세요...">
+                </div>
+                <div class="space-y-2">
+                    <label for="chapterDescription" class="text-sm font-medium text-primary">챕터 설명 (선택사항)</label>
+                    <input type="text" id="chapterDescription" class="w-full px-3 h-12 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 card" placeholder="간단한 챕터 설명을 입력하세요...">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeChapterModal()" class="flex-1 px-4 py-3 border border-custom text-primary rounded-lg hover:bg-gray-50 touch-feedback">취소</button>
+                <button onclick="saveChapter()" class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        const categoryConfig = {
-            "소설": {
-                icon: "fas fa-book",
-                color: "category-novel",
-                lightColor: "category-novel-light",
-                placeholder: "이야기의 시작을 써보세요...",
-                guide: "인물, 배경, 갈등을 중심으로 이야기를 전개해보세요."
-            },
-            "시": {
-                icon: "fas fa-heart",
-                color: "category-poem",
-                lightColor: "category-poem-light",
-                placeholder: "마음속 감정을 시로 표현해보세요...",
-                guide: "운율과 리듬을 고려하며 감정을 담아보세요."
-            },
-            "일기": {
-                icon: "fas fa-calendar",
-                color: "category-diary",
-                lightColor: "category-diary-light",
-                placeholder: "오늘 하루는 어땠나요?",
-                guide: "솔직한 감정과 경험을 기록해보세요."
-            },
-            "에세이": {
-                icon: "fas fa-file-alt",
-                color: "category-essay",
-                lightColor: "category-essay-light",
-                placeholder: "주제에 대한 생각을 정리해보세요...",
-                guide: "서론-본론-결론 구조로 논리적으로 전개해보세요."
-            },
-            "아이디어": {
-                icon: "fas fa-lightbulb",
-                color: "category-idea",
-                lightColor: "category-idea-light",
-                placeholder: "떠오른 아이디어를 빠르게 기록하세요...",
-                guide: "자유롭게 생각을 펼쳐보세요. 나중에 발전시킬 수 있습니다."
-            },
-            "대본": {
-                icon: "fas fa-theater-masks",
-                color: "category-script",
-                lightColor: "category-script-light",
-                placeholder: "등장인물: \n대사를 작성해보세요...",
-                guide: "등장인물과 대사, 지문을 명확히 구분해서 작성하세요."
-            }
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <div class="p-5 border-b border-custom">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-primary">전체 설정</h3>
+                <button onclick="closeSettings()" class="text-secondary hover:text-primary">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-5 space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="font-medium text-primary">자동 저장</h4>
+                    <p class="text-sm text-secondary">3초마다 자동으로 작품을 저장합니다</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="autoSaveToggle" class="sr-only peer" checked onchange="toggleAutoSave()">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+
+            <div class="space-y-3">
+                <h4 class="font-medium text-primary">앱 배경 설정</h4>
+                <p class="text-sm text-secondary">앱 전체 배경을 선택하세요.</p>
+                
+                <div class="grid grid-cols-3 gap-3" id="appBgSelector">
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500 flex items-center justify-center card" onclick="selectAppBackground('none')" data-app-bg="none">
+                        <span class="text-xs text-secondary">기본</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('beige')" data-app-bg="beige" style="background: linear-gradient(135deg, #f5f5dc 0%, #e6ddd4 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">베이지</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('gray')" data-app-bg="gray" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">그레이</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('warm-beige')" data-app-bg="warm-beige" style="background: linear-gradient(135deg, #faf7f0 0%, #f0e6d2 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">따뜻한 베이지</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('cool-gray')" data-app-bg="cool-gray" style="background: linear-gradient(135deg, #f1f3f4 0%, #dadce0 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">쿨 그레이</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('sunset')" data-app-bg="sunset" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">선셋</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('ocean')" data-app-bg="ocean" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">오션</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('lavender')" data-app-bg="lavender" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">라벤더</span>
+                    </button>
+                    <button class="h-20 rounded-lg border-2 border-custom hover:border-blue-500" onclick="selectAppBackground('mint')" data-app-bg="mint" style="background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)">
+                        <span class="text-xs text-gray-700 bg-white bg-opacity-70 px-2 py-1 rounded">민트</span>
+                    </button>
+                </div>
+                
+                <div class="mt-4">
+                    <h4 class="font-medium text-primary mb-2">내 이미지로 배경 설정</h4>
+                    <label for="bgImageUpload" class="file-upload-btn">
+                        <i class="fas fa-upload mr-2"></i>이미지 업로드
+                    </label>
+                    <input type="file" id="bgImageUpload" class="file-upload-input" accept="image/*" onchange="handleBgImageUpload(event)">
+                    
+                    <div id="bgImagePreview" class="mt-3 hidden">
+                        <div class="bg-preview" id="bgPreviewImage">
+                            <div class="bg-preview-overlay">
+                                <span>미리보기</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-2 gap-2">
+                             <button onclick="removeCustomBackground()" class="px-3 py-1 bg-red-500 text-white text-sm rounded-lg">제거</button>
+                            <button onclick="applyCustomBackground()" class="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg">적용하기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                <h4 class="font-medium text-primary">데이터 관리</h4>
+                <div class="flex gap-2">
+                    <button onclick="exportAllData()" class="flex-1 py-2 px-3 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
+                        <i class="fas fa-download mr-1"></i> 전체 데이터 내보내기
+                    </button>
+                    <label class="flex-1 py-2 px-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm text-center cursor-pointer">
+                        <i class="fas fa-upload mr-1"></i> 데이터 가져오기
+                        <input type="file" class="hidden" accept=".json" onchange="importData(event)">
+                    </label>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="p-5 border-t border-custom flex justify-end">
+            <button onclick="closeSettings()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">닫기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let pieces = [];
+    let currentEditingPiece = null;
+    let currentFilter = "전체";
+    let searchQuery = "";
+    let pieceToDelete = null;
+    let isFullscreen = false;
+    let autoSaveTimer = null;
+    let customBgImageData = null;
+    let currentChapterId = null;
+    let editingChapterId = null;
+    
+    // Default settings
+    let userSettings = {
+        darkMode: false,
+        appBackground: 'none',
+        customBgImage: null,
+        editorFont: 'font-noto-sans',
+        editorFontSize: 16,
+        editorBackground: 'default', // Using semantic name
+        autoSave: true
+    };
+    
+    // --- NEW: Theme Configurations ---
+    const editorColorThemes = {
+        'default':  { light: 'bg-white', dark: '#1f2937' },
+        'gray':     { light: '#f9fafb', dark: '#374151' },
+        'blue':     { light: '#eff6ff', dark: '#1e3a8a' },
+        'green':    { light: '#f0fdf4', dark: '#14532d' },
+        'yellow':   { light: '#fefce8', dark: '#713f12' },
+        'pink':     { light: '#fdf2f8', dark: '#831843' },
+        'purple':   { light: '#f5f3ff', dark: '#581c87' }
+    };
+
+    const inspirationPanelThemes = {
+        'default':  { panelBg: '#6b7280', wordBg: '#4b5563', hoverBg: '#374151', text: '#ffffff' },
+        'gray':     { panelBg: '#6b7280', wordBg: '#4b5563', hoverBg: '#374151', text: '#ffffff' },
+        'blue':     { panelBg: '#2563eb', wordBg: '#1d4ed8', hoverBg: '#1e40af', text: '#ffffff' },
+        'green':    { panelBg: '#16a34a', wordBg: '#15803d', hoverBg: '#166534', text: '#ffffff' },
+        'yellow':   { panelBg: '#ca8a04', wordBg: '#a16207', hoverBg: '#854d0e', text: '#ffffff' },
+        'pink':     { panelBg: '#db2777', wordBg: '#be185d', hoverBg: '#9d174d', text: '#ffffff' },
+        'purple':   { panelBg: '#7c3aed', wordBg: '#6d28d9', hoverBg: '#5b21b6', text: '#ffffff' }
+    };
+    // --- END NEW ---
+
+    // Config objects
+    const inspirationWords = {
+        "소설": ["운명", "비밀", "모험", "사랑", "배신", "복수", "희망", "절망", "용기", "두려움", "신비", "마법", "시간", "기억", "꿈", "현실", "과거", "미래", "진실", "거짓", "여행", "만남", "이별", "성장", "변화", "선택", "후회", "용서", "구원", "희생", "어둠", "빛", "폭풍", "고요", "열정", "냉정", "자유", "속박", "승리", "패배"],
+        "시": ["그리움", "사랑", "이별", "추억", "눈물", "미소", "바람", "달빛", "별", "꽃", "향기", "멜로디", "리듬", "감정", "마음", "영혼", "숨결", "속삭임", "침묵", "울림", "봄", "여름", "가을", "겨울", "새벽", "황혼", "노을", "무지개", "구름", "비", "파도", "산", "강", "바다", "하늘", "땅", "나무", "잎", "꽃잎", "향수"],
+        "아이디어": ["혁신", "창의", "발견", "발명", "상상", "영감", "직감", "통찰", "아이디어", "컨셉", "해결책", "방법", "접근", "관점", "시각", "생각", "계획", "전략", "목표", "가능성", "기회", "도전", "실험", "시도", "테스트", "프로토타입", "모델", "시스템", "구조", "패턴", "연결", "관계", "조합", "융합", "변형", "개선", "최적화", "효율", "단순화"],
+        "대본": ["대화", "갈등", "긴장", "반전", "클라이맥스", "해결", "캐릭터", "성격", "동기", "목적", "장면", "배경", "분위기", "톤", "리듬", "템포", "액션", "감정", "표현", "연기", "무대", "조명", "음향", "효과", "소품", "의상", "메이크업", "연출", "방향", "스타일", "장르", "코미디", "드라마", "스릴러", "로맨스", "액션", "판타지", "SF", "공포", "미스터리"]
+    };
+
+    const categoryConfig = {
+        "소설": { icon: "fas fa-book", color: "category-novel", lightColor: "category-novel-light", placeholder: "이야기의 시작을 써보세요...", guide: "인물, 배경, 갈등을 중심으로 이야기를 전개해보세요.", hasInspiration: true, hasChapters: true },
+        "시": { icon: "fas fa-heart", color: "category-poem", lightColor: "category-poem-light", placeholder: "마음속 감정을 시로 표현해보세요...", guide: "운율과 리듬을 고려하며 감정을 담아보세요.", hasInspiration: true, hasChapters: false },
+        "일기": { icon: "fas fa-calendar", color: "category-diary", lightColor: "category-diary-light", placeholder: "오늘 하루는 어땠나요?", guide: "솔직한 감정과 경험을 기록해보세요.", hasInspiration: false, hasChapters: false },
+        "에세이": { icon: "fas fa-file-alt", color: "category-essay", lightColor: "category-essay-light", placeholder: "주제에 대한 생각을 정리해보세요...", guide: "서론-본론-결론 구조로 논리적으로 전개해보세요.", hasInspiration: false, hasChapters: false },
+        "아이디어": { icon: "fas fa-lightbulb", color: "category-idea", lightColor: "category-idea-light", placeholder: "떠오른 아이디어를 빠르게 기록하세요...", guide: "자유롭게 생각을 펼쳐보세요. 나중에 발전시킬 수 있습니다.", hasInspiration: true, hasChapters: false },
+        "대본": { icon: "fas fa-theater-masks", color: "category-script", lightColor: "category-script-light", placeholder: "등장인물: \n대사를 작성해보세요...", guide: "등장인물과 대사, 지문을 명확히 구분해서 작성하세요.", hasInspiration: true, hasChapters: true }
+    };
+
+    const backgroundStyles = {
+        'none': '',
+        'beige': 'linear-gradient(135deg, #f5f5dc 0%, #e6ddd4 100%)',
+        'gray': 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        'warm-beige': 'linear-gradient(135deg, #faf7f0 0%, #f0e6d2 100%)',
+        'cool-gray': 'linear-gradient(135deg, #f1f3f4 0%, #dadce0 100%)',
+        'sunset': 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+        'ocean': 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+        'lavender': 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+        'mint': 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)'
+    };
+
+    // Utility Functions
+    function generateId() { return Date.now().toString(36) + Math.random().toString(36).substring(2); }
+    function sanitizeHTML(text) {
+        const temp = document.createElement('div');
+        temp.textContent = text;
+        return temp.innerHTML;
+    }
+    const saveData = () => localStorage.setItem('creativeSpacePieces', JSON.stringify(pieces));
+
+    // Theme & Navigation
+    function toggleDarkMode() {
+        userSettings.darkMode = !userSettings.darkMode;
+        document.documentElement.setAttribute('data-theme', userSettings.darkMode ? 'dark' : 'light');
+        document.getElementById('darkModeIcon').className = `fas ${userSettings.darkMode ? 'fa-sun' : 'fa-moon'} text-lg`;
+        renderEditorBgSelector(); // Re-render swatches for new mode
+        if (currentEditingPiece) {
+            applyEditorSettings(); // Re-apply editor bg for new mode
+        }
+        saveGlobalSettings();
+    }
+    function goBackToList() {
+        if (isFullscreen) toggleFullscreen();
+        document.getElementById('listView').classList.remove('hidden');
+        document.getElementById('editorView').classList.add('hidden');
+        document.getElementById('backButton').classList.add('hidden');
+        currentEditingPiece = null;
+        renderPosts();
+        renderCategoryStats();
+    }
+
+    // Floating Menu
+    function toggleFloatingMenu() {
+        document.getElementById('floatingButton').classList.toggle('active');
+        document.getElementById('overlay').classList.toggle('hidden');
+    }
+    function hideFloatingMenu() {
+        document.getElementById('floatingButton').classList.remove('active');
+        document.getElementById('overlay').classList.add('hidden');
+    }
+
+    // List View
+    function startNewPiece(category) {
+        const newPiece = {
+            id: generateId(), title: `새 ${category}`, content: "", category: category,
+            createdAt: new Date().toISOString(),
+            characters: [], tags: [], chapters: [], mood: ''
         };
+        pieces.unshift(newPiece);
+        saveData();
+        openEditor(newPiece.id);
+    }
+    function handleSearch() {
+        searchQuery = document.getElementById('searchInput').value.toLowerCase();
+        renderPosts();
+    }
+    function filterByCategory() {
+        currentFilter = document.getElementById('categoryFilter').value;
+        renderPosts();
+    }
+    function renderCategoryStats() {
+        const statsContainer = document.getElementById('categoryStats');
+        statsContainer.innerHTML = '';
+        Object.keys(categoryConfig).forEach(category => {
+            const count = pieces.filter(p => p.category === category).length;
+            const config = categoryConfig[category];
+            statsContainer.innerHTML += `
+                <div class="flex flex-col items-center justify-center card rounded-lg p-3 touch-feedback ${config.lightColor}">
+                    <i class="${config.icon} text-2xl"></i>
+                    <span class="text-sm">${category}</span>
+                    <span class="text-xl font-bold">${count}</span>
+                </div>`;
+        });
+    }
+    function renderPosts() {
+        const postsList = document.getElementById('postsList');
+        postsList.innerHTML = '';
+        const filtered = pieces.filter(p => 
+            (currentFilter === "전체" || p.category === currentFilter) &&
+            (p.title.toLowerCase().includes(searchQuery) || (p.content || "").toLowerCase().includes(searchQuery))
+        );
 
-        // 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            // 로컬 스토리지에서 데이터 불러오기
-            const savedPieces = localStorage.getItem('writingPieces');
-            if (savedPieces) {
-                pieces = JSON.parse(savedPieces);
+        if (filtered.length === 0) {
+            postsList.innerHTML = '<p class="text-secondary text-center py-10">작품이 없습니다. 새 작품을 추가해보세요!</p>';
+            return;
+        }
+
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        filtered.forEach(piece => {
+            const config = categoryConfig[piece.category];
+            const preview = (piece.content || '').substring(0, 100).replace(/\n/g, ' ');
+            const postCard = document.createElement('div');
+            postCard.className = `post-card card border border-custom rounded-lg p-4 relative cursor-pointer`;
+            postCard.dataset.id = piece.id;
+            postCard.innerHTML = `
+                <div class="flex items-start gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full ${config.color} flex-shrink-0 flex items-center justify-center">
+                        <i class="${config.icon} text-white text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-primary truncate">${highlightSearchTerms(sanitizeHTML(piece.title))}</h3>
+                        <p class="text-sm text-secondary">${new Date(piece.createdAt).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                <p class="text-primary line-clamp-2 text-sm">${highlightSearchTerms(sanitizeHTML(preview || '내용 없음'))}</p>
+                <button class="delete-button" onclick="event.stopPropagation(); openDeleteModal('${piece.id}')" aria-label="삭제">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            postCard.addEventListener('click', () => openEditor(piece.id));
+            postsList.appendChild(postCard);
+        });
+    }
+    function highlightSearchTerms(text) {
+        if (!searchQuery) return text;
+        return text.replace(new RegExp(searchQuery.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi'), match => `<span class="search-highlight">${match}</span>`);
+    }
+
+    // Editor View
+    function openEditor(pieceId) {
+        const piece = pieces.find(p => p.id === pieceId);
+        if (!piece) return;
+        currentEditingPiece = piece;
+        document.getElementById('listView').classList.add('hidden');
+        document.getElementById('editorView').classList.remove('hidden');
+        document.getElementById('backButton').classList.remove('hidden');
+        
+        document.getElementById('editorTitle').textContent = piece.title;
+        document.getElementById('pieceCategory').value = piece.category;
+        document.getElementById('pieceTitle').value = piece.title;
+        document.getElementById('pieceMood').value = piece.mood || '';
+        
+        updateEditorCategory();
+        
+        renderTags();
+        renderCharacters();
+
+        if (categoryConfig[piece.category].hasChapters) {
+            currentChapterId = (piece.chapters && piece.chapters.length > 0) ? piece.chapters[0].id : null;
+            renderChapterList();
+            updateCurrentChapterInfo();
+        } else {
+            document.getElementById('pieceContent').value = piece.content || '';
+        }
+
+        updateCharCount();
+        switchTab(document.querySelector('.tab-button'), 'content');
+        applyEditorSettings();
+        renderEditorBgSelector();
+    }
+    function updateEditorCategory() {
+        const category = document.getElementById('pieceCategory').value;
+        const config = categoryConfig[category];
+        document.getElementById('editorCategoryIcon').className = `w-10 h-10 rounded-full flex items-center justify-center ${config.color}`;
+        document.getElementById('editorCategoryIcon').innerHTML = `<i class="${config.icon} text-white text-lg"></i>`;
+        document.getElementById('editorGuide').textContent = config.guide;
+        document.getElementById('pieceContent').placeholder = config.placeholder;
+        document.getElementById('inspirationPanel').classList.toggle('hidden', !config.hasInspiration);
+        if (config.hasInspiration) generateInspirationWords();
+        document.getElementById('novelChaptersSection').classList.toggle('hidden', !config.hasChapters);
+        
+        if(currentEditingPiece) {
+            currentEditingPiece.category = category;
+            if (config.hasChapters && (!currentEditingPiece.chapters || currentEditingPiece.chapters.length === 0)) {
+                addChapter(true); // Add a default first chapter if none exist
             }
-            
-            renderCategoryStats();
-            renderPostsList();
-            
-            // 모바일 키보드 대응
-            const inputs = document.querySelectorAll('input, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    if (window.innerWidth <= 640) {
-                        setTimeout(() => {
-                            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 300);
-                    }
-                });
-            });
-            
-            // 터치 이벤트 최적화
-            document.addEventListener('touchstart', function() {}, {passive: true});
+            handleAutoSave();
+        }
+    }
+    function switchTab(button, tabName) {
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+    }
+    function updateCharCount() {
+        document.getElementById('charCount').textContent = `${document.getElementById('pieceContent').value.length}자 작성됨`;
+    }
+
+    // Details & Meta Tabs
+    const createItemRenderer = (listId, arrayName, placeholder, deleteFn) => {
+        const listEl = document.getElementById(listId);
+        listEl.innerHTML = '';
+        const items = currentEditingPiece[arrayName];
+        if (!items || items.length === 0) {
+            listEl.innerHTML = `<p class="text-sm text-secondary">${placeholder}</p>`; return;
+        }
+        items.forEach((item, index) => {
+            listEl.innerHTML += `
+                <div class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-primary rounded-full flex items-center gap-2 text-sm">
+                    <span>${sanitizeHTML(item)}</span>
+                    <button type="button" onclick="${deleteFn}(${index})" class="text-red-500 hover:text-red-700 text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>`;
+        });
+    };
+    function addCharacter() {
+        const input = document.getElementById('newCharacter');
+        if (input.value.trim()) {
+            if (!currentEditingPiece.characters) currentEditingPiece.characters = [];
+            currentEditingPiece.characters.push(input.value.trim());
+            renderCharacters();
+            input.value = '';
+            handleAutoSave();
+        }
+    }
+    function renderCharacters() { createItemRenderer('charactersList', 'characters', '등장인물이 없습니다.', 'deleteCharacter'); }
+    window.deleteCharacter = (index) => { currentEditingPiece.characters.splice(index, 1); renderCharacters(); handleAutoSave(); };
+    
+    function addTag() {
+        const input = document.getElementById('newTag');
+        if (input.value.trim()) {
+            if (!currentEditingPiece.tags) currentEditingPiece.tags = [];
+            currentEditingPiece.tags.push(input.value.trim());
+            renderTags();
+            input.value = '';
+            handleAutoSave();
+        }
+    }
+    function renderTags() { createItemRenderer('tagsList', 'tags', '태그가 없습니다.', 'deleteTag'); }
+    window.deleteTag = (index) => { currentEditingPiece.tags.splice(index, 1); renderTags(); handleAutoSave(); };
+
+    // Editor Settings
+    function renderEditorBgSelector() {
+        const selector = document.getElementById('editorBgSelector');
+        selector.innerHTML = '';
+        const currentMode = userSettings.darkMode ? 'dark' : 'light';
+        for (const themeName in editorColorThemes) {
+            const color = editorColorThemes[themeName][currentMode];
+            const isActive = userSettings.editorBackground === themeName;
+            const ringClass = isActive ? 'ring-2 ring-offset-2 ring-blue-500' : '';
+            selector.innerHTML += `
+                <button 
+                    class="w-8 h-8 rounded-full border-2 border-gray-300 ${ringClass}" 
+                    style="background-color: ${color}"
+                    onclick="updateEditorBackground('${themeName}')">
+                </button>`;
+        }
+    }
+    function updateEditorBackground(themeName) {
+        userSettings.editorBackground = themeName;
+        applyEditorSettings();
+        renderEditorBgSelector(); // Re-render to show active ring
+        saveGlobalSettings();
+    }
+    function applyEditorSettings() {
+        const textarea = document.getElementById('pieceContent');
+        textarea.className = `w-full px-3 py-3 border border-custom rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none card ${userSettings.editorFont}`;
+        textarea.style.fontSize = `${userSettings.editorFontSize}px`;
+        
+        document.getElementById('editorFont').value = userSettings.editorFont;
+        document.getElementById('editorFontSize').value = userSettings.editorFontSize;
+        document.getElementById('editorFontSizeValue').textContent = `${userSettings.editorFontSize}px`;
+
+        // Apply editor card background
+        const themeName = userSettings.editorBackground || 'default';
+        const currentMode = userSettings.darkMode ? 'dark' : 'light';
+        const bgColor = editorColorThemes[themeName][currentMode];
+        document.getElementById('editorCard').style.backgroundColor = bgColor;
+
+        // Apply inspiration panel theme
+        const panel = document.getElementById('inspirationPanel');
+        const iTheme = inspirationPanelThemes[themeName] || inspirationPanelThemes['default'];
+        panel.style.setProperty('--inspiration-panel-bg', iTheme.panelBg);
+        panel.style.setProperty('--inspiration-word-bg', iTheme.wordBg);
+        panel.style.setProperty('--inspiration-word-hover-bg', iTheme.hoverBg);
+        panel.style.setProperty('--inspiration-text-color', iTheme.text);
+    }
+    function updateEditorFont() {
+        userSettings.editorFont = document.getElementById('editorFont').value;
+        applyEditorSettings();
+        saveGlobalSettings();
+    }
+    function updateEditorFontSize() {
+        userSettings.editorFontSize = document.getElementById('editorFontSize').value;
+        applyEditorSettings();
+        saveGlobalSettings();
+    }
+
+    // Chapter Management
+    function addChapter(isDefault = false) {
+        editingChapterId = null;
+        document.getElementById('chapterModalTitle').textContent = '챕터 추가';
+        document.getElementById('chapterTitle').value = isDefault ? '첫 번째 챕터' : '';
+        document.getElementById('chapterDescription').value = '';
+        if (isDefault) {
+            saveChapter();
+        } else {
+            openChapterModal();
+        }
+    }
+    window.editChapter = (chapterId) => {
+        const chapter = currentEditingPiece.chapters.find(c => c.id === chapterId);
+        if (chapter) {
+            editingChapterId = chapterId;
+            document.getElementById('chapterModalTitle').textContent = '챕터 편집';
+            document.getElementById('chapterTitle').value = chapter.title;
+            document.getElementById('chapterDescription').value = chapter.description;
+            openChapterModal();
+        }
+    };
+    function saveChapter() {
+        const title = document.getElementById('chapterTitle').value.trim();
+        if (!title) { alert('챕터 제목을 입력해주세요.'); return; }
+        const description = document.getElementById('chapterDescription').value.trim();
+
+        if (editingChapterId) {
+            const chapter = currentEditingPiece.chapters.find(c => c.id === editingChapterId);
+            chapter.title = sanitizeHTML(title);
+            chapter.description = sanitizeHTML(description);
+        } else {
+            const newChapter = { id: generateId(), title: sanitizeHTML(title), description: sanitizeHTML(description), content: '' };
+            if (!currentEditingPiece.chapters) currentEditingPiece.chapters = [];
+            currentEditingPiece.chapters.push(newChapter);
+            currentChapterId = newChapter.id;
+        }
+        renderChapterList();
+        updateCurrentChapterInfo();
+        closeChapterModal();
+        handleAutoSave();
+    }
+    window.selectChapter = (chapterId) => {
+        saveCurrentChapterContent();
+        currentChapterId = chapterId;
+        renderChapterList();
+        updateCurrentChapterInfo();
+    };
+    window.deleteChapter = (chapterId) => {
+        event.stopPropagation();
+        if (currentEditingPiece.chapters.length <= 1) {
+            alert('최소 한 개의 챕터는 존재해야 합니다.');
+            return;
+        }
+        if (confirm('정말로 이 챕터를 삭제하시겠습니까?')) {
+            currentEditingPiece.chapters = currentEditingPiece.chapters.filter(c => c.id !== chapterId);
+            if (currentChapterId === chapterId) {
+                currentChapterId = currentEditingPiece.chapters.length > 0 ? currentEditingPiece.chapters[0].id : null;
+            }
+            renderChapterList();
+            updateCurrentChapterInfo();
+            handleAutoSave();
+        }
+    };
+    function renderChapterList() {
+        const listEl = document.getElementById('chapterList');
+        listEl.innerHTML = '';
+        if (!currentEditingPiece.chapters || currentEditingPiece.chapters.length === 0) {
+            listEl.innerHTML = '<p class="text-secondary p-3">챕터가 없습니다.</p>'; return;
+        }
+        currentEditingPiece.chapters.forEach(chapter => {
+            const item = document.createElement('div');
+            item.className = `chapter-item ${chapter.id === currentChapterId ? 'active' : ''}`;
+            item.innerHTML = `
+                <div class="flex-1" onclick="selectChapter('${chapter.id}')">
+                    <h4 class="font-medium text-primary">${chapter.title}</h4>
+                    <p class="text-sm text-secondary truncate">${chapter.description || '설명 없음'}</p>
+                </div>
+                <div class="chapter-actions">
+                    <button onclick="event.stopPropagation(); editChapter('${chapter.id}')" class="chapter-action-btn" aria-label="편집"><i class="fas fa-edit"></i></button>
+                    <button onclick="event.stopPropagation(); deleteChapter('${chapter.id}')" class="chapter-action-btn" aria-label="삭제"><i class="fas fa-trash-alt"></i></button>
+                </div>`;
+            listEl.appendChild(item);
+        });
+    }
+    function updateCurrentChapterInfo() {
+        const infoEl = document.getElementById('currentChapterInfo');
+        const chapter = currentEditingPiece.chapters.find(c => c.id === currentChapterId);
+        if (chapter) {
+            infoEl.textContent = `현재 챕터: ${chapter.title}`;
+            document.getElementById('pieceContent').value = chapter.content || '';
+        } else {
+            infoEl.textContent = '챕터를 선택해주세요.';
+            document.getElementById('pieceContent').value = '';
+        }
+        updateCharCount();
+    }
+
+    // Fullscreen, Inspiration
+    function toggleFullscreen() {
+        const textarea = document.getElementById('pieceContent');
+        const button = document.getElementById('contentFullscreenButton');
+        isFullscreen = !isFullscreen;
+        textarea.classList.toggle('fullscreen-mode', isFullscreen);
+        button.innerHTML = `<i class="fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}"></i>`;
+
+        const existingCloseBtn = document.getElementById('fullscreenCloseBtn');
+        if (existingCloseBtn) existingCloseBtn.remove();
+        
+        if (isFullscreen) {
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'fullscreenCloseBtn';
+            closeBtn.className = 'fullscreen-overlay-button';
+            closeBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            closeBtn.onclick = toggleFullscreen;
+            document.body.appendChild(closeBtn);
+            textarea.focus();
+        }
+    }
+    function generateInspirationWords() {
+        const category = document.getElementById('pieceCategory').value;
+        const words = inspirationWords[category];
+        if (!words) return;
+        const container = document.getElementById('inspirationWords');
+        container.innerHTML = '';
+        words.sort(() => 0.5 - Math.random()).slice(0, 15).forEach(word => {
+            container.innerHTML += `<button class="inspiration-word" onclick="addWordToTextarea('${word}', this)">${word}</button>`;
+        });
+    }
+    function addWordToTextarea(word, button) {
+        document.getElementById('pieceContent').value += word + ' ';
+        updateCharCount(); handleAutoSave();
+        button.classList.add('clicked');
+        setTimeout(() => button.classList.remove('clicked'), 600);
+        document.getElementById('pieceContent').focus();
+    }
+
+    // Save & Export
+    function saveCurrentChapterContent() {
+        if (!currentEditingPiece || !categoryConfig[currentEditingPiece.category].hasChapters || !currentChapterId) return;
+        const chapter = currentEditingPiece.chapters.find(c => c.id === currentChapterId);
+        if (chapter) chapter.content = document.getElementById('pieceContent').value;
+    }
+    function savePiece(showIndicator = false) {
+        if (!currentEditingPiece) return;
+        currentEditingPiece.title = document.getElementById('pieceTitle').value;
+        currentEditingPiece.category = document.getElementById('pieceCategory').value;
+        currentEditingPiece.mood = document.getElementById('pieceMood').value;
+        currentEditingPiece.updatedAt = new Date().toISOString();
+        
+        if (categoryConfig[currentEditingPiece.category].hasChapters) {
+            saveCurrentChapterContent();
+            currentEditingPiece.content = currentEditingPiece.chapters.map(c => c.content).join('\n\n');
+        } else {
+            currentEditingPiece.content = document.getElementById('pieceContent').value;
+        }
+
+        saveData();
+        if (showIndicator) {
+            document.getElementById('saveButtonText').textContent = "저장됨!";
+            setTimeout(() => { document.getElementById('saveButtonText').textContent = "저장"; }, 2000);
+        }
+    }
+    function exportPiece() { document.getElementById('exportModal').classList.add('active'); }
+    function downloadFile(format) {
+        if (!currentEditingPiece) return;
+        let filename = `${currentEditingPiece.title.replace(/[^a-z0-9]/gi, '_')}.${format}`;
+        let content, mimeType;
+        
+        const pieceData = JSON.stringify(currentEditingPiece, null, 2);
+        const textContent = `제목: ${currentEditingPiece.title}\n카테고리: ${currentEditingPiece.category}\n\n${(categoryConfig[currentEditingPiece.category].hasChapters && currentEditingPiece.chapters) ? currentEditingPiece.chapters.map(c => `## ${c.title}\n\n${c.content}`).join('\n\n---\n\n') : currentEditingPiece.content}`;
+
+        switch(format) {
+            case 'txt': content = textContent; mimeType = 'text/plain'; break;
+            case 'json': content = pieceData; mimeType = 'application/json'; break;
+            case 'html': 
+                content = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${sanitizeHTML(currentEditingPiece.title)}</title><style>body{font-family:sans-serif;line-height:1.6;max-width:800px;margin:auto;padding:2rem;} h1,h2{color:#333;} pre{white-space:pre-wrap;}</style></head><body><h1>${sanitizeHTML(currentEditingPiece.title)}</h1><pre>${sanitizeHTML(textContent)}</pre></body></html>`;
+                mimeType = 'text/html';
+                break;
+        }
+        const blob = new Blob([content], { type: mimeType });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        closeExportModal();
+    }
+    function cancelEdit() { goBackToList(); }
+
+    // Modal Controls
+    function openDeleteModal(pieceId) {
+        pieceToDelete = pieceId;
+        const piece = pieces.find(p => p.id === pieceId);
+        if (piece) {
+            document.getElementById('deleteTitle').textContent = piece.title;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+    }
+    function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); }
+    function confirmDelete() {
+        if (pieceToDelete) {
+            pieces = pieces.filter(p => p.id !== pieceToDelete);
+            saveData();
+            closeDeleteModal();
+            if (currentEditingPiece && currentEditingPiece.id === pieceToDelete) {
+                goBackToList();
+            } else {
+                renderPosts();
+                renderCategoryStats();
+            }
+        }
+    }
+    function openSettings() { document.getElementById('settingsModal').classList.add('active'); }
+    function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+    function closeExportModal() { document.getElementById('exportModal').classList.remove('active'); }
+    function openChapterModal() { document.getElementById('chapterModal').classList.add('active'); }
+    function closeChapterModal() { document.getElementById('chapterModal').classList.remove('active'); }
+
+    // Auto-Save
+    function handleAutoSave() {
+        if (!userSettings.autoSave) return;
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            savePiece();
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+        }, 3000);
+    }
+    function toggleAutoSave() {
+        userSettings.autoSave = document.getElementById('autoSaveToggle').checked;
+        saveGlobalSettings();
+    }
+
+    // App Background Settings
+    function selectAppBackground(bgName) {
+        userSettings.appBackground = bgName;
+        userSettings.customBgImage = null;
+        customBgImageData = null;
+        document.getElementById('bgImagePreview').classList.add('hidden');
+        applyAppBackground();
+        saveGlobalSettings();
+    }
+    function applyAppBackground() {
+        const body = document.getElementById('appBody');
+        document.querySelectorAll('#appBgSelector button').forEach(b => {
+            b.classList.toggle('ring-2', b.dataset.appBg === userSettings.appBackground);
+            b.classList.toggle('ring-blue-500', b.dataset.appBg === userSettings.appBackground);
         });
 
-        // 로컬 스토리지에 데이터 저장
-        function saveToLocalStorage() {
-            localStorage.setItem('writingPieces', JSON.stringify(pieces));
+        if (userSettings.customBgImage) {
+            body.classList.add('bg-image');
+            body.style.background = `url(${userSettings.customBgImage})`;
+        } else {
+            body.classList.remove('bg-image');
+            body.style.background = backgroundStyles[userSettings.appBackground] || 'var(--bg-secondary)';
         }
-
-        // 삭제 모달 열기
-        function openDeleteModal(pieceId, event) {
-            event.stopPropagation(); // 카드 클릭 이벤트 방지
-            
-            const piece = pieces.find(p => p.id === pieceId);
-            if (piece) {
-                pieceToDelete = pieceId;
-                document.getElementById('deleteTitle').textContent = piece.title;
-                document.getElementById('deleteModal').classList.add('active');
-            }
+    }
+    function handleBgImageUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                customBgImageData = e.target.result;
+                document.getElementById('bgPreviewImage').style.backgroundImage = `url(${customBgImageData})`;
+                document.getElementById('bgImagePreview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
         }
-
-        // 삭제 모달 닫기
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            pieceToDelete = null;
+    }
+    function applyCustomBackground() {
+        if (customBgImageData) {
+            userSettings.customBgImage = customBgImageData;
+            userSettings.appBackground = 'custom';
+            applyAppBackground();
+            saveGlobalSettings();
         }
+    }
+    function removeCustomBackground() {
+        selectAppBackground('none');
+    }
 
-        // 삭제 확인
-        function confirmDelete() {
-            if (pieceToDelete) {
-                pieces = pieces.filter(piece => piece.id !== pieceToDelete);
-                saveToLocalStorage();
-                renderCategoryStats();
-                renderPostsList();
-                closeDeleteModal();
-            }
-        }
-
-        // 카테고리 통계 렌더링
-        function renderCategoryStats() {
-            const stats = {};
-            Object.keys(categoryConfig).forEach(cat => stats[cat] = 0);
-            pieces.forEach(piece => stats[piece.category]++);
-
-            const statsContainer = document.getElementById('categoryStats');
-            statsContainer.innerHTML = '';
-
-            Object.entries(categoryConfig).forEach(([category, config]) => {
-                const count = stats[category];
-                const isSelected = currentFilter === category;
-                
-                const statCard = document.createElement('div');
-                statCard.className = `cursor-pointer transition-all duration-200 hover:shadow-md bg-white border border-gray-200 rounded-lg p-3 text-center touch-feedback ${isSelected ? 'ring-2 ring-blue-500' : ''}`;
-                statCard.onclick = () => filterByCategory(category);
-                
-                statCard.innerHTML = `
-                    <div class="w-8 h-8 rounded-full ${config.color} flex items-center justify-center mx-auto mb-1">
-                        <i class="${config.icon} text-white"></i>
-                    </div>
-                    <p class="text-xs font-medium text-gray-900">${category}</p>
-                    <p class="text-xs text-gray-500">${count}개</p>
-                `;
-                
-                statsContainer.appendChild(statCard);
-            });
-        }
-
-        // 작품 목록 렌더링
-        function renderPostsList() {
-            const filteredPieces = currentFilter === "전체" ? pieces : pieces.filter(piece => piece.category === currentFilter);
-            const listContainer = document.getElementById('postsList');
-            
-            if (filteredPieces.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="bg-white border border-gray-200 rounded-lg p-6 text-center">
-                        <p class="text-gray-500 mb-4">${currentFilter === "전체" ? "아직 작품이 없습니다. 첫 작품을 만들어보세요!" : `${currentFilter} 작품이 없습니다.`}</p>
-                        <div class="flex flex-wrap gap-2 justify-center">
-                            ${Object.entries(categoryConfig).map(([category, config]) => `
-                                <button onclick="startNewPiece('${category}')" class="flex items-center gap-2 px-3 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 touch-feedback">
-                                    <i class="${config.icon}"></i>
-                                    ${category} 쓰기
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+    // Data Import/Export
+    function exportAllData() {
+        const dataStr = JSON.stringify({ pieces, userSettings });
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `creative-space-backup-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    function importData(event) {
+        const file = event.target.files[0];
+        if (file) {
+            if (!confirm('현재 모든 데이터를 덮어쓰고 가져온 데이터로 교체하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
                 return;
             }
-
-            listContainer.innerHTML = filteredPieces.map(piece => {
-                const config = categoryConfig[piece.category];
-                return `
-                    <div class="post-card bg-white border border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-shadow duration-200 hover:border-gray-300 touch-feedback relative" onclick="editPiece('${piece.id}')">
-                        <!-- 삭제 버튼 -->
-                        <button class="delete-button" onclick="openDeleteModal('${piece.id}', event)" aria-label="작품 삭제">
-                            <i class="fas fa-trash text-sm"></i>
-                        </button>
-                        
-                        <div class="p-4 pb-3">
-                            <div class="flex justify-between items-start">
-                                <div class="flex items-center gap-2 flex-1 pr-10">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${config.lightColor}">
-                                        <i class="${config.icon} mr-1"></i>
-                                        ${piece.category}
-                                    </span>
-                                    <h3 class="text-base font-semibold text-gray-900 line-clamp-2 flex-1">${piece.title}</h3>
-                                </div>
-                                <span class="text-xs text-gray-500 ml-2 flex-shrink-0">${piece.createdAt}</span>
-                            </div>
-                        </div>
-                        <div class="px-4 pb-4">
-                            <p class="text-sm text-gray-600 line-clamp-3 mb-2">${piece.preview}</p>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                ${piece.mood ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">기분: ${piece.mood}</span>` : ''}
-                                ${piece.characters && piece.characters.length > 0 ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">등장인물: ${piece.characters.join(', ')}</span>` : ''}
-                                ${piece.tags && piece.tags.length > 0 ? piece.tags.map(tag => `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs border border-gray-300 text-gray-700">#${tag}</span>`).join('') : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // 카테고리 필터링
-        function filterByCategory(category) {
-            if (category) {
-                currentFilter = category;
-                document.getElementById('categoryFilter').value = category;
-            } else {
-                currentFilter = document.getElementById('categoryFilter').value;
-            }
-            renderCategoryStats();
-            renderPostsList();
-        }
-
-        // 플로팅 메뉴 토글
-        function toggleFloatingMenu() {
-            const button = document.getElementById('floatingButton');
-            const overlay = document.getElementById('overlay');
-            
-            if (button.classList.contains('active')) {
-                hideFloatingMenu();
-            } else {
-                button.classList.add('active');
-                overlay.classList.remove('hidden');
-            }
-        }
-        
-        // 플로팅 메뉴 숨기기
-        function hideFloatingMenu() {
-            const button = document.getElementById('floatingButton');
-            const overlay = document.getElementById('overlay');
-            
-            button.classList.remove('active');
-            overlay.classList.add('hidden');
-        }
-
-        // 새 작품 시작
-        function startNewPiece(category) {
-            currentEditingPiece = null;
-            document.getElementById('listView').classList.add('hidden');
-            document.getElementById('editorView').classList.remove('hidden');
-            document.getElementById('backButton').classList.remove('hidden');
-            
-            // 카테고리 설정
-            document.getElementById('pieceCategory').value = category;
-            updateEditorCategory();
-            
-            // 폼 초기화
-            document.getElementById('pieceTitle').value = '';
-            document.getElementById('pieceContent').value = '';
-            document.getElementById('pieceMood').value = '';
-            document.getElementById('newCharacter').value = '';
-            document.getElementById('newTag').value = '';
-            document.getElementById('charactersList').innerHTML = '';
-            document.getElementById('tagsList').innerHTML = '';
-            document.getElementById('saveButtonText').textContent = '저장';
-            
-            updateCharCount();
-            updateCategoryVisibility();
-            
-            // 모바일에서 스크롤 맨 위로
-            window.scrollTo(0, 0);
-        }
-
-        // 작품 편집
-        function editPiece(pieceId) {
-            const piece = pieces.find(p => p.id === pieceId);
-            if (!piece) return;
-            
-            currentEditingPiece = piece;
-            document.getElementById('listView').classList.add('hidden');
-            document.getElementById('editorView').classList.remove('hidden');
-            document.getElementById('backButton').classList.remove('hidden');
-            
-            // 폼에 데이터 채우기
-            document.getElementById('pieceCategory').value = piece.category;
-            document.getElementById('pieceTitle').value = piece.title;
-            document.getElementById('pieceContent').value = piece.content;
-            document.getElementById('pieceMood').value = piece.mood || '';
-            document.getElementById('saveButtonText').textContent = '수정';
-            
-            // 등장인물과 태그 렌더링
-            renderCharacters(piece.characters || []);
-            renderTags(piece.tags || []);
-            
-            updateEditorCategory();
-            updateCharCount();
-            updateCategoryVisibility();
-            
-            // 모바일에서 스크롤 맨 위로
-            window.scrollTo(0, 0);
-        }
-
-        // 편집기 카테고리 업데이트
-        function updateEditorCategory() {
-            const category = document.getElementById('pieceCategory').value;
-            const config = categoryConfig[category];
-            
-            const iconElement = document.getElementById('editorCategoryIcon');
-            iconElement.className = `w-10 h-10 rounded-full ${config.color} flex items-center justify-center`;
-            iconElement.innerHTML = `<i class="${config.icon} text-white"></i>`;
-            
-            document.getElementById('editorTitle').textContent = currentEditingPiece ? `${category} 편집` : `새 ${category} 쓰기`;
-            document.getElementById('editorGuide').textContent = config.guide;
-            document.getElementById('pieceContent').placeholder = config.placeholder;
-            
-            // 대본인 경우 폰트 변경
-            if (category === '대본') {
-                document.getElementById('pieceContent').style.fontFamily = 'monospace';
-            } else {
-                document.getElementById('pieceContent').style.fontFamily = '';
-            }
-            
-            updateCategoryVisibility();
-        }
-
-        // 카테고리별 필드 표시/숨김
-        function updateCategoryVisibility() {
-            const category = document.getElementById('pieceCategory').value;
-            const moodSection = document.getElementById('moodSection');
-            const charactersSection = document.getElementById('charactersSection');
-            
-            // 기분/분위기 필드
-            if (category === '일기' || category === '시') {
-                moodSection.style.display = 'block';
-            } else {
-                moodSection.style.display = 'none';
-            }
-            
-            // 등장인물 필드
-            if (category === '소설' || category === '대본') {
-                charactersSection.style.display = 'block';
-            } else {
-                charactersSection.style.display = 'none';
-            }
-        }
-
-        // 탭 전환
-        function switchTab(tabName) {
-            // 모든 탭 버튼과 콘텐츠 비활성화
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // 선택된 탭 활성화
-            event.target.classList.add('active');
-            document.getElementById(tabName + 'Tab').classList.add('active');
-        }
-
-        // 글자 수 업데이트
-        function updateCharCount() {
-            const content = document.getElementById('pieceContent').value;
-            document.getElementById('charCount').textContent = `${content.length}자 작성됨`;
-        }
-
-        // 등장인물 추가
-        function addCharacter() {
-            const input = document.getElementById('newCharacter');
-            const character = input.value.trim();
-            
-            if (character) {
-                const currentCharacters = getCurrentCharacters();
-                if (!currentCharacters.includes(character)) {
-                    currentCharacters.push(character);
-                    renderCharacters(currentCharacters);
-                    input.value = '';
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.pieces && data.userSettings) {
+                        pieces = data.pieces;
+                        userSettings = data.userSettings;
+                        saveData();
+                        saveGlobalSettings();
+                        location.reload(); // Reload to apply all settings
+                    } else {
+                        alert('잘못된 파일 형식입니다.');
+                    }
+                } catch (error) {
+                    alert('파일을 읽는 중 오류가 발생했습니다.');
+                    console.error(error);
                 }
-            }
+            };
+            reader.readAsText(file);
         }
+    }
 
-        // 현재 등장인물 목록 가져오기
-        function getCurrentCharacters() {
-            const characterElements = document.querySelectorAll('#charactersList .character-tag');
-            return Array.from(characterElements).map(el => el.textContent.replace(' ×', ''));
+    // Global Settings
+    function saveGlobalSettings() { localStorage.setItem('userSettings', JSON.stringify(userSettings)); }
+    function loadGlobalSettings() {
+        const saved = localStorage.getItem('userSettings');
+        if (saved) {
+            userSettings = { ...userSettings, ...JSON.parse(saved) };
         }
+        // Apply loaded settings
+        document.documentElement.setAttribute('data-theme', userSettings.darkMode ? 'dark' : 'light');
+        document.getElementById('darkModeIcon').className = `fas ${userSettings.darkMode ? 'fa-sun' : 'fa-moon'} text-lg`;
+        document.getElementById('autoSaveToggle').checked = userSettings.autoSave;
+        applyAppBackground();
+        renderEditorBgSelector();
+        applyEditorSettings();
+    }
 
-        // 등장인물 렌더링
-        function renderCharacters(characters) {
-            const container = document.getElementById('charactersList');
-            container.innerHTML = characters.map(character => `
-                <span class="character-tag inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800 cursor-pointer touch-feedback" onclick="removeCharacter('${character}')">
-                    ${character} ×
-                </span>
-            `).join('');
-        }
-
-        // 등장인물 제거
-        function removeCharacter(character) {
-            const currentCharacters = getCurrentCharacters().filter(c => c !== character);
-            renderCharacters(currentCharacters);
-        }
-
-        // 태그 추가
-        function addTag() {
-            const input = document.getElementById('newTag');
-            const tag = input.value.trim();
-            
-            if (tag) {
-                const currentTags = getCurrentTags();
-                if (!currentTags.includes(tag)) {
-                    currentTags.push(tag);
-                    renderTags(currentTags);
-                    input.value = '';
+    // Initial Setup
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedPieces = localStorage.getItem('creativeSpacePieces');
+        if (savedPieces) {
+            pieces = JSON.parse(savedPieces);
+        } else {
+            // Add sample data if no data exists
+             pieces = [
+                {
+                    id: "1", title: "첫 번째 소설",
+                    content: "어둠이 내린 골목길에서 그녀는 운명적인 만남을 가졌다. 가로등 불빛이 희미하게 비추는 그 곳에서, 시간이 멈춘 듯한 순간이 찾아왔다. 그녀의 마음은 두근거렸고, 운명의 실이 서로를 이어주는 것을 느낄 수 있었다.",
+                    category: "소설", createdAt: "2024-01-15T10:00:00Z", characters: ["주인공", "신비한 남자"], tags: ["로맨스", "운명"],
+                    chapters: [
+                        { id: "ch1", title: "첫 번째 챕터", description: "운명적인 만남", content: "어둠이 내린 골목길에서 그녀는 운명적인 만남을 가졌다. 가로등 불빛이 희미하게 비추는 그 곳에서, 시간이 멈춘 듯한 순간이 찾아왔다. 그녀의 마음은 두근거렸고, 운명의 실이 서로를 이어주는 것을 느낄 수 있었다." }
+                    ]
+                },
+                {
+                    id: "2", title: "봄날의 기억",
+                    content: "벚꽃이 흩날리는\n그 길에서\n너를 만났다\n\n바람에 실려온\n꽃잎처럼\n가벼운 마음으로\n\n하지만 그 순간이\n영원히 기억될 줄\n몰랐었다",
+                    category: "시", createdAt: "2024-01-10T11:00:00Z", mood: "그리움", tags: ["봄", "사랑", "추억"]
+                },
+                {
+                    id: "3", title: "오늘의 하루",
+                    content: "오늘은 정말 바쁜 하루였다. 아침부터 회의가 연달아 있었고, 점심시간도 제대로 못 가졌다. 하지만 저녁에 친구들과 만나서 맛있는 음식을 먹으며 이야기를 나누니 하루의 피로가 모두 사라졌다. 이런 소소한 행복이 삶을 살아가는 이유인 것 같다.",
+                    category: "일기", createdAt: "2024-01-05T12:00:00Z", mood: "피곤하지만 행복함", tags: ["일상", "친구", "행복"]
                 }
-            }
+            ];
+            saveData();
         }
 
-        // 현재 태그 목록 가져오기
-        function getCurrentTags() {
-            const tagElements = document.querySelectorAll('#tagsList .tag-item');
-            return Array.from(tagElements).map(el => el.textContent.replace('#', '').replace(' ×', ''));
-        }
-
-        // 태그 렌더링
-        function renderTags(tags) {
-            const container = document.getElementById('tagsList');
-            container.innerHTML = tags.map(tag => `
-                <span class="tag-item inline-flex items-center px-2 py-1 rounded-full text-xs border border-gray-300 text-gray-700 cursor-pointer touch-feedback" onclick="removeTag('${tag}')">
-                    #${tag} ×
-                </span>
-            `).join('');
-        }
-
-        // 태그 제거
-        function removeTag(tag) {
-            const currentTags = getCurrentTags().filter(t => t !== tag);
-            renderTags(currentTags);
-        }
-
-        // 작품 저장
-        function savePiece() {
-            const title = document.getElementById('pieceTitle').value.trim();
-            const content = document.getElementById('pieceContent').value.trim();
-            const category = document.getElementById('pieceCategory').value;
-            const mood = document.getElementById('pieceMood').value.trim();
-            const characters = getCurrentCharacters();
-            const tags = getCurrentTags();
-            
-            if (!title || !content) {
-                alert('제목과 내용을 모두 입력해주세요.');
-                return;
-            }
-            
-            if (currentEditingPiece) {
-                // 기존 작품 수정
-                const index = pieces.findIndex(p => p.id === currentEditingPiece.id);
-                pieces[index] = {
-                    ...pieces[index],
-                    title,
-                    content,
-                    preview: content.substring(0, 120) + (content.length > 120 ? '...' : ''),
-                    category,
-                    mood: mood || undefined,
-                    characters: characters.length > 0 ? characters : undefined,
-                    tags: tags.length > 0 ? tags : undefined
-                };
-            } else {
-                // 새 작품 생성
-                const newPiece = {
-                    id: Date.now().toString(),
-                    title,
-                    content,
-                    preview: content.substring(0, 120) + (content.length > 120 ? '...' : ''),
-                    category,
-                    createdAt: new Date().toISOString().split('T')[0],
-                    mood: mood || undefined,
-                    characters: characters.length > 0 ? characters : undefined,
-                    tags: tags.length > 0 ? tags : undefined
-                };
-                pieces.unshift(newPiece);
-            }
-            
-            // 로컬 스토리지에 저장
-            saveToLocalStorage();
-            
-            goBackToList();
-        }
-
-        // 편집 취소
-        function cancelEdit() {
-            goBackToList();
-        }
-
-        // 목록으로 돌아가기
-        function goBackToList() {
-            document.getElementById('editorView').classList.add('hidden');
-            document.getElementById('listView').classList.remove('hidden');
-            document.getElementById('backButton').classList.add('hidden');
-            
-            currentEditingPiece = null;
-            renderCategoryStats();
-            renderPostsList();
-        }
-    </script>
+        loadGlobalSettings();
+        renderPosts();
+        renderCategoryStats();
+    });
+</script>
 </body>
 </html>
